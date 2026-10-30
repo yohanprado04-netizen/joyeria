@@ -185,60 +185,6 @@
   font-weight: var(--fw-semibold);
 }
 
-/* Doble precio: Detal y Mayorista */
-.product-card__prices {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin: var(--space-2) 0 var(--space-3);
-}
-
-.product-card__price-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-2);
-  font-size: 0.875rem;
-}
-
-.product-card__price-label {
-  color: var(--color-text-muted);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.product-card__price-val {
-  font-weight: var(--fw-medium);
-  color: var(--color-text);
-  font-size: 0.95rem;
-}
-
-.product-card__price-row--wholesale {
-  background: rgba(212, 175, 55, 0.08);
-  padding: 3px 6px;
-  border-radius: var(--radius);
-  border: 1px dashed rgba(212, 175, 55, 0.4);
-  margin-top: 2px;
-}
-
-.product-card__price-row--wholesale .product-card__price-label {
-  color: var(--gold-1);
-  font-weight: var(--fw-medium);
-}
-
-.product-card__price-val--gold {
-  color: var(--gold-1);
-  font-weight: var(--fw-bold);
-  font-size: 0.95rem;
-}
-
-.product-card__price-min {
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-  margin-left: 2px;
-}
-
 .product-card__price-old {
   font-size: 0.8125rem;
   font-weight: var(--fw-regular);

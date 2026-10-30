@@ -125,27 +125,6 @@
   gap: var(--space-4);
 }
 
-/* Banner de incentivo y activación Mayorista en el Carrito */
-.cart-wholesale-banner {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  margin-bottom: var(--space-2);
-}
-
-.cart-wholesale-banner--active {
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid var(--gold-2);
-  color: var(--gold-1);
-}
-
-.cart-wholesale-banner--progress {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px dashed var(--color-border);
-  color: var(--color-text-muted);
-}
-
 .cart-empty {
   text-align: center;
   padding-block: var(--space-12);

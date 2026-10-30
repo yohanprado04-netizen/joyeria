@@ -160,14 +160,7 @@
     if (descEl) descEl.textContent = p.desc || 'Pieza forjada a mano en oro macizo 18K garantizado.';
     if (priceEl) {
       const money = (window.FYNX && window.FYNX.money) ? window.FYNX.money : (n) => `$ ${n}`;
-      const wPrice = (window.FYNX && FYNX.getWholesalePrice) ? FYNX.getWholesalePrice(p) : Math.round((Number(p.price) || 0) * 0.75);
-      const minQty = (window.FYNX && FYNX.getWholesaleMinQty) ? FYNX.getWholesaleMinQty() : 3;
-      priceEl.innerHTML = `
-        <span style="display:inline-block;margin-right:10px">Detal: <b>${money(p.price || 0)}</b></span>
-        <span style="display:inline-block;color:var(--gold-1);background:rgba(212,175,55,0.12);padding:3px 8px;border-radius:var(--radius);border:1px dashed var(--gold-2);font-size:0.95em">
-          Mayorista: <b>${money(wPrice)}</b> <small style="font-size:0.75em;opacity:0.85">(${minQty}+ piezas)</small>
-        </span>
-      `;
+      priceEl.textContent = money(p.price || 0);
     }
     if (btnAction) {
       const hasStock = typeof p.stock !== 'undefined' ? Number(p.stock) > 0 : true;

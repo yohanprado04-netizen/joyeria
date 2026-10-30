@@ -11,15 +11,14 @@
       wa2: '',
       wa2Label: 'Línea 2 · Atención y Pedidos',
       waMode: 'balance', // 'balance' (50/50), 'select' (menú cliente), 'line1', 'line2'
-      email: '',
-      wholesaleMinQty: 3,
-      wholesaleDiscountPct: 25
+      email: ''
     },
     cats: [
       { id: 'a', name: 'Anillos' },
       { id: 'b', name: 'Collares' },
       { id: 'c', name: 'Pulseras' },
-      { id: 'd', name: 'Aretes' }
+      { id: 'd', name: 'Aretes' },
+      { id: 'm', name: 'Kits Mayoristas' }
     ],
     prods: [
       // Anillos
@@ -27,7 +26,6 @@
         id: 'a1',
         name: 'Anillo Fénix Dorado',
         price: 480000,
-        wholesalePrice: 350000,
         stock: 4,
         cat: 'a',
         tag: 'Nuevo',
@@ -40,7 +38,6 @@
         id: 'a2',
         name: 'Solitario Corona Real',
         price: 620000,
-        wholesalePrice: 450000,
         stock: 2,
         cat: 'a',
         tag: 'Exclusivo',
@@ -53,7 +50,6 @@
         id: 'a3',
         name: 'Anillo Sello Emperador',
         price: 540000,
-        wholesalePrice: 390000,
         stock: 0,
         cat: 'a',
         tag: '',
@@ -67,7 +63,6 @@
         id: 'b1',
         name: 'Cadena Imperial Maciza',
         price: 890000,
-        wholesalePrice: 650000,
         stock: 3,
         cat: 'b',
         tag: 'Más vendido',
@@ -80,7 +75,6 @@
         id: 'b2',
         name: 'Gargantilla Luz Eterna',
         price: 730000,
-        wholesalePrice: 530000,
         stock: 1,
         cat: 'b',
         tag: 'Última pieza',
@@ -93,7 +87,6 @@
         id: 'b3',
         name: 'Cadena Figaro Oro 18K',
         price: 980000,
-        wholesalePrice: 710000,
         stock: 0,
         cat: 'b',
         tag: '',
@@ -107,7 +100,6 @@
         id: 'c1',
         name: 'Pulsera Renacer',
         price: 390000,
-        wholesalePrice: 280000,
         stock: 5,
         cat: 'c',
         tag: 'Destacado',
@@ -120,7 +112,6 @@
         id: 'c2',
         name: 'Manilla Cubana Diamantada',
         price: 520000,
-        wholesalePrice: 380000,
         stock: 2,
         cat: 'c',
         tag: '',
@@ -133,7 +124,6 @@
         id: 'c3',
         name: 'Pulsera Eslabón Fénix',
         price: 460000,
-        wholesalePrice: 330000,
         stock: 0,
         cat: 'c',
         tag: '',
@@ -147,7 +137,6 @@
         id: 'd1',
         name: 'Candongas Fuego Sagrado',
         price: 310000,
-        wholesalePrice: 225000,
         stock: 6,
         cat: 'd',
         tag: 'Tendencia',
@@ -160,7 +149,6 @@
         id: 'd2',
         name: 'Aretes Destello de Llama',
         price: 260000,
-        wholesalePrice: 190000,
         stock: 2,
         cat: 'd',
         tag: '',
@@ -173,13 +161,37 @@
         id: 'd3',
         name: 'Topos Botón Imperial',
         price: 210000,
-        wholesalePrice: 155000,
         stock: 0,
         cat: 'd',
         tag: '',
         sizes: '',
         desc: 'Clásicos topos discretos en oro macizo pulido, mariposa reforzada.',
         img: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?w=800&auto=format&fit=crop&q=80',
+        on: 1
+      },
+      // Kits Mayoristas
+      {
+        id: 'm1',
+        name: 'Kit Emprendedor Oro 18K (10 Piezas)',
+        price: 2450000,
+        stock: 3,
+        cat: 'm',
+        tag: 'Mayorista',
+        sizes: '',
+        desc: 'Surtido comercial exclusivo: 4 anillos surtidos, 3 pulseras y 3 collares en oro garantizado.',
+        img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&auto=format&fit=crop&q=80',
+        on: 1
+      },
+      {
+        id: 'm2',
+        name: 'Lote Mayorista Solitarios (6 Unidades)',
+        price: 1980000,
+        stock: 2,
+        cat: 'm',
+        tag: 'Mayorista',
+        sizes: '6,7,8,9',
+        desc: 'Combo de 6 solitarios en oro 18K con engaste fino y estuches individuales de presentación.',
+        img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop&q=80',
         on: 1
       }
     ],
@@ -254,17 +266,14 @@
     waLabel: 'Línea 1 · Asesoría',
     wa2: '573001234567',
     wa2Label: 'Línea 2 · Pedidos',
-    email: '',
-    wholesaleMinQty: 3,
-    wholesaleDiscountPct: 25
+    email: ''
   }, db.cfg);
   if (!Array.isArray(db.sales)) db.sales = [];
-  db.prods.forEach(p => { 
-    if (typeof p.stock === 'undefined') p.stock = 3;
-    if (!p.wholesalePrice && Number(p.price) > 0) {
-      p.wholesalePrice = Math.round(Number(p.price) * 0.75 / 1000) * 1000;
-    }
-  });
+  db.prods.forEach(p => { if (typeof p.stock === 'undefined') p.stock = 3; });
+  // Asegurar la categoría de Kits Mayoristas en la colección
+  if (!db.cats.some(c => c.id === 'm' || c.name.toLowerCase().includes('mayorista'))) {
+    db.cats.push({ id: 'm', name: 'Kits Mayoristas' });
+  }
 
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(db)); return true; } catch (e) { return false; }
@@ -637,21 +646,6 @@
         outOfStockCount,
         sales: db.sales
       };
-    },
-
-    // Cálculo y reglas de precios mayoristas
-    getWholesalePrice: (p) => {
-      if (!p) return 0;
-      if (p.wholesalePrice && Number(p.wholesalePrice) > 0) {
-        return Number(p.wholesalePrice);
-      }
-      const discPct = Number(db.cfg.wholesaleDiscountPct) || 25;
-      const basePrice = Number(p.price) || 0;
-      return Math.max(0, Math.round(basePrice * (1 - discPct / 100) / 1000) * 1000);
-    },
-
-    getWholesaleMinQty: () => {
-      return Number(db.cfg.wholesaleMinQty) || 3;
     }
   };
 })();
