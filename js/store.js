@@ -18,7 +18,7 @@
       { id: 'b', name: 'Collares' },
       { id: 'c', name: 'Pulseras' },
       { id: 'd', name: 'Aretes' },
-      { id: 'm', name: 'Kits Mayoristas' }
+      { id: 'm', name: 'Mayorista' }
     ],
     prods: [
       // Anillos
@@ -270,9 +270,12 @@
   }, db.cfg);
   if (!Array.isArray(db.sales)) db.sales = [];
   db.prods.forEach(p => { if (typeof p.stock === 'undefined') p.stock = 3; });
-  // Asegurar la categoría de Kits Mayoristas en la colección
-  if (!db.cats.some(c => c.id === 'm' || c.name.toLowerCase().includes('mayorista'))) {
-    db.cats.push({ id: 'm', name: 'Kits Mayoristas' });
+  // Asegurar la categoría Mayorista en la colección
+  const catM = db.cats.find(c => c.id === 'm' || c.name.toLowerCase().includes('mayorista'));
+  if (catM) {
+    catM.name = 'Mayorista';
+  } else {
+    db.cats.push({ id: 'm', name: 'Mayorista' });
   }
 
   const save = () => {
