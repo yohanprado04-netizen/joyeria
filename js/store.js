@@ -178,6 +178,9 @@
         cat: 'm',
         tag: 'Más vendido',
         sizes: '',
+        pieces: '12 Joyas surtidas',
+        breakdown: '4 Anillos (tallas 6,7,8,9), 3 Cadenas con dijes (45-55cm), 3 Pulseras y 2 Candongas con estuche de lujo',
+        suggestedRetail: 'Sugerido al detal: $4.400.000 COP · Margen aprox: 52%',
         desc: 'Pack mayorista de máxima rotación: 4 anillos surtidos, 3 collares, 3 pulseras y 2 aretes en oro 18K garantizado con estuches de lujo.',
         img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&auto=format&fit=crop&q=80',
         on: 1
@@ -190,6 +193,9 @@
         cat: 'm',
         tag: 'Exclusivo',
         sizes: '6,7,8,9',
+        pieces: '6 Anillos surtidos',
+        breakdown: '6 Anillos Solitario Corona Real en tallas comerciales 6, 7, 8 y 9 con engaste alto artesanal',
+        suggestedRetail: 'Sugerido al detal: $3.720.000 COP · Margen aprox: 47%',
         desc: 'Docena media de anillos Solitario Corona Real con engaste alto artesanal y tallas comerciales surtidas.',
         img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop&q=80',
         on: 1
@@ -202,6 +208,9 @@
         cat: 'm',
         tag: 'Destacado',
         sizes: '45 cm,50 cm,55 cm',
+        pieces: '5 Conjuntos de Cadena + Dije',
+        breakdown: '5 Cadenas tejido italiano reforzado (45cm, 50cm, 55cm) con 5 dijes clásicos en oro macizo',
+        suggestedRetail: 'Sugerido al detal: $5.200.000 COP · Margen aprox: 50%',
         desc: 'Lote de 5 cadenas de tejido italiano reforzado y dijes clásicos en oro macizo. Presentación prémium para vitrina.',
         img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
         on: 1
@@ -214,6 +223,9 @@
         cat: 'm',
         tag: 'Tendencia',
         sizes: '',
+        pieces: '12 Pares de Aretes',
+        breakdown: '6 Pares de Candongas medianas labradas + 6 Pares de Topos botón imperial en oro 18K',
+        suggestedRetail: 'Sugerido al detal: $2.850.000 COP · Margen aprox: 41%',
         desc: 'Surtido de 12 pares de candongas medianas y topos botón en oro 18K pulido espejo, broches de seguridad reforzados.',
         img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=800&auto=format&fit=crop&q=80',
         on: 1
@@ -226,6 +238,9 @@
         cat: 'm',
         tag: 'Nuevo',
         sizes: '18 cm,19 cm,20 cm',
+        pieces: '6 Manillas y Pulseras',
+        breakdown: '3 Manillas cubanas diamantadas (18, 19, 20 cm) + 3 Pulseras eslabón fénix de alto impacto',
+        suggestedRetail: 'Sugerido al detal: $3.400.000 COP · Margen aprox: 36%',
         desc: 'Selección de 6 manillas y pulseras diamantadas con broche de caja, tejido tupido de alto impacto visual.',
         img: 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=800&auto=format&fit=crop&q=80',
         on: 1
@@ -320,6 +335,17 @@
     const mayoristaKits = s.prods.filter(p => p.cat === 'm');
     db.prods.push(...mayoristaKits);
   }
+
+  // Asegurar que los kits existentes cuenten con sus atributos específicos (piezas, desglose, sugerido)
+  const sKits = seed().prods.filter(p => p.cat === 'm');
+  sKits.forEach(sk => {
+    const existing = db.prods.find(p => p.id === sk.id);
+    if (existing) {
+      if (!existing.pieces) existing.pieces = sk.pieces;
+      if (!existing.breakdown) existing.breakdown = sk.breakdown;
+      if (!existing.suggestedRetail) existing.suggestedRetail = sk.suggestedRetail;
+    }
+  });
 
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(db)); return true; } catch (e) { return false; }

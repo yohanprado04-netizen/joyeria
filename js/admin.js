@@ -159,6 +159,7 @@
 
       <div class="admin__card"><h3>Acciones rápidas</h3><div class="admin__row-actions">
         <button class="button button--primary" data-a="new">Nueva joya</button>
+        <button class="button button--ghost" data-a="new-kit" style="border-color:var(--gold-2);color:var(--gold-1);font-weight:var(--fw-medium)">+ Nuevo Kit Mayorista</button>
         <button class="button button--ghost" data-a="go" data-k="st">Actualizar Stock</button>
         <button class="button button--ghost" data-a="go" data-k="fin">Ver Finanzas</button>
         <button class="button button--ghost" data-a="go" data-k="c">Categorías</button>
@@ -197,14 +198,15 @@
         <div class="admin__list">
           ${prods.map((p) => {
             const st = Number(p.stock) || 0;
+            const isKit = p.cat === 'm';
             const badgeClass = st <= 0 ? 'admin__badge--danger' : st <= 2 ? 'admin__badge--warn' : 'admin__badge--ok';
-            const badgeText = st <= 0 ? 'Agotado' : st <= 2 ? `Bajo (${st})` : `En Stock (${st})`;
+            const badgeText = st <= 0 ? (isKit ? 'Kit Agotado' : 'Agotado') : st <= 2 ? `Bajo (${st} ${isKit ? 'kits' : 'uds.'})` : `En Stock (${st} ${isKit ? 'kits' : 'uds.'})`;
             return `
               <article class="admin__item admin__item--stock" data-pid="${esc(p.id)}">
                 <div class="admin__thumb" ${p.img ? `data-zoom-img="${esc(p.img)}" data-zoom-title="${esc(p.name)}" data-zoom-desc="${esc(p.desc || '')}" data-zoom-price="${Number(p.price) || 0}" style="cursor:pointer" title="Toca para ampliar y detallar foto"` : ''}>${p.img ? `<img src="${esc(p.img)}" alt="">` : svg('p')}</div>
                 <div class="admin__meta">
                   <b>${esc(p.name)}</b>
-                  <small>${esc(F.catName(p.cat))} · ${money(p.price)} · <span class="admin__badge ${badgeClass}">${badgeText}</span></small>
+                  <small>${isKit ? '<span class="admin__badge admin__badge--warn" style="margin-right:2px">KIT MAYORISTA</span> ' : ''}${esc(F.catName(p.cat))} · ${money(p.price)} · <span class="admin__badge ${badgeClass}">${badgeText}</span>${(isKit && p.pieces) ? ` · 📦 ${esc(p.pieces)}` : ''}</small>
                 </div>
                 <div class="admin__stock-ctrl">
                   <button type="button" class="admin__stock-btn" data-a="st-dec" data-id="${esc(p.id)}" aria-label="Restar 1">−</button>
@@ -389,26 +391,138 @@
         `}
       </div>`;
   };
-  const list = () => `<div class="admin__bar"><p>${db.prods.length} joyas registradas</p><div style="display:flex;gap:var(--space-2)"><button class="button button--ghost admin__sm" data-a="load-seed">Cargar datos de prueba</button><button class="button button--primary admin__sm" data-a="new">Nueva joya</button></div></div>
-    <div class="admin__list">${db.prods.map((p) => `<article class="admin__item">
-      <div class="admin__thumb" ${p.img ? `data-zoom-img="${esc(p.img)}" data-zoom-title="${esc(p.name)}" data-zoom-desc="${esc(p.desc || '')}" data-zoom-price="${Number(p.price) || 0}" style="cursor:pointer" title="Toca para ampliar y detallar foto"` : ''}>${p.img ? `<img src="${esc(p.img)}" alt="">` : svg('p')}</div>
-      <div class="admin__meta"><b>${esc(p.name)}</b><small>${esc(F.catName(p.cat))} · ${money(p.price)} · Stock: <b>${p.stock ?? 0}</b>${p.on ? '' : ' · Oculta'}</small></div>
-      <div class="admin__acts"><button class="button button--ghost admin__sm" data-a="ep" data-id="${esc(p.id)}">Editar</button><button class="button button--ghost admin__sm admin__danger" data-a="dp" data-id="${esc(p.id)}">Eliminar</button></div>
-    </article>`).join('') || '<div class="admin__card" style="text-align:center;padding:var(--space-6)"><p class="admin__empty" style="margin-bottom:var(--space-3)">Aún no hay joyas registradas en la tienda.</p><button class="button button--primary" data-a="load-seed">Cargar catálogo de muestra con fotos reales</button></div>'}</div>`;
+  const list = () => {
+    const kitCount = db.prods.filter((p) => p.cat === 'm').length;
+    return `
+      <div class="admin__bar">
+        <p>${db.prods.length} joyas registradas ${kitCount ? `· <span style="color:var(--gold-1)"><b>${kitCount}</b> kits mayoristas</span>` : ''}</p>
+        <div style="display:flex;gap:var(--space-2);flex-wrap:wrap">
+          <button class="button button--ghost admin__sm" data-a="load-seed">Cargar datos de prueba</button>
+          <button class="button button--ghost admin__sm" data-a="new-kit" style="border-color:var(--gold-2);color:var(--gold-1);font-weight:var(--fw-medium)">+ Nuevo Kit Mayorista</button>
+          <button class="button button--primary admin__sm" data-a="new">Nueva joya</button>
+        </div>
+      </div>
+      <div class="admin__list">
+        ${db.prods.map((p) => {
+          const isKit = p.cat === 'm';
+          return `
+            <article class="admin__item">
+              <div class="admin__thumb" ${p.img ? `data-zoom-img="${esc(p.img)}" data-zoom-title="${esc(p.name)}" data-zoom-desc="${esc(p.desc || '')}" data-zoom-price="${Number(p.price) || 0}" style="cursor:pointer" title="Toca para ampliar y detallar foto"` : ''}>
+                ${p.img ? `<img src="${esc(p.img)}" alt="">` : svg('p')}
+              </div>
+              <div class="admin__meta">
+                <b>${esc(p.name)}</b>
+                <small>
+                  ${isKit ? '<span class="admin__badge admin__badge--warn" style="margin-right:4px">KIT MAYORISTA</span>' : ''}
+                  ${esc(F.catName(p.cat))} · ${money(p.price)} · Stock: <b>${p.stock ?? 0}</b>${isKit ? ' kits' : ' uds.'}${p.on ? '' : ' · Oculta'}
+                  ${(isKit && p.pieces) ? ` · <span style="color:var(--gold-1)">📦 ${esc(p.pieces)}</span>` : ''}
+                </small>
+              </div>
+              <div class="admin__acts">
+                <button class="button button--ghost admin__sm" data-a="ep" data-id="${esc(p.id)}">Editar</button>
+                <button class="button button--ghost admin__sm admin__danger" data-a="dp" data-id="${esc(p.id)}">Eliminar</button>
+              </div>
+            </article>
+          `;
+        }).join('') || '<div class="admin__card" style="text-align:center;padding:var(--space-6)"><p class="admin__empty" style="margin-bottom:var(--space-3)">Aún no hay joyas registradas en la tienda.</p><button class="button button--primary" data-a="load-seed">Cargar catálogo de muestra con fotos reales</button></div>'}
+      </div>
+    `;
+  };
+
   const form = () => {
-    const e = db.prods.find((p) => p.id == edit) || {}, prev = pend || e.img;
-    return `<form class="admin__form" data-prod autocomplete="off">
-      <div class="admin__field"><label for="f-n">Nombre</label><input id="f-n" maxlength="80" required value="${esc(e.name)}"></div>
-      <div class="admin__field"><label for="f-p">Precio (COP)</label><input id="f-p" type="number" min="0" step="1000" required value="${esc(e.price ?? '')}"></div>
-      <div class="admin__field"><label for="f-c">Categoría</label><select id="f-c">${db.cats.map((c) => `<option value="${esc(c.id)}" ${e.cat == c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
-      <div class="admin__field"><label for="f-st">Stock disponible (unidades)</label><input id="f-st" type="number" min="0" required value="${esc(e.stock ?? 3)}"></div>
-      <div class="admin__field"><label for="f-t">Etiqueta (opcional)</label><input id="f-t" maxlength="24" placeholder="Nuevo, Más vendido…" value="${esc(e.tag)}"></div>
-      <div class="admin__field"><label for="f-s">Tallas o medidas, separadas por coma</label><input id="f-s" placeholder="Ej: 6,7,8,9 · vacío si es talla única" value="${esc(e.sizes)}"></div>
-      <div class="admin__field admin__field--full"><label for="f-d">Descripción</label><textarea id="f-d" rows="3" maxlength="300">${esc(e.desc)}</textarea></div>
-      <div class="admin__field admin__field--full"><label for="f-f">Foto</label><div class="admin__photo"><div class="admin__thumb" id="f-prev">${prev ? `<img src="${esc(prev)}" alt="">` : svg('p')}</div><input id="f-f" type="file" accept="image/*"></div></div>
-      <label class="admin__check admin__field--full"><input id="f-v" type="checkbox" ${e.on !== 0 ? 'checked' : ''}> Visible en la tienda</label>
-      <div class="admin__row-actions admin__field--full"><button class="button button--primary" type="submit">${edit === 'new' ? 'Registrar joya' : 'Guardar cambios'}</button><button class="button button--ghost" type="button" data-a="back">Cancelar</button></div>
-    </form>`;
+    const isNewKit = edit === 'new-kit';
+    const isNew = edit === 'new' || isNewKit;
+    const e = (!isNew) ? (db.prods.find((p) => p.id == edit) || {}) : (isNewKit ? { cat: 'm', stock: 3, on: 1 } : {});
+    const prev = pend || e.img;
+    const isKit = isNewKit || e.cat === 'm';
+
+    return `
+      <form class="admin__form" data-prod autocomplete="off">
+        <div id="kit-banner" class="admin__field--full" style="display:${isKit ? 'block' : 'none'};background:linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(10,9,8,0.92) 100%);border:1px solid var(--gold-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius);margin-bottom:var(--space-2)">
+          <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px">
+            <span style="font-size:1.2rem">📦</span>
+            <b style="color:var(--gold-1);letter-spacing:0.12em;text-transform:uppercase;font-size:0.85rem">Formulario Especializado: Kit / Lote Mayorista</b>
+            <span class="admin__badge admin__badge--warn" style="margin-left:auto">MODO MAYORISTA</span>
+          </div>
+          <small style="color:var(--color-text-muted);font-size:0.75rem;line-height:1.4">Diseñado específicamente para paquetes comerciales, lotes de piezas surtidas, desglose de inventario y valores sugeridos de reventa para mayoristas.</small>
+        </div>
+
+        <div class="admin__field">
+          <label for="f-n" id="lbl-name">${isKit ? 'Nombre del Kit / Lote Mayorista' : 'Nombre'}</label>
+          <input id="f-n" maxlength="80" required value="${esc(e.name || '')}" placeholder="${isKit ? 'Ej: Kit Emprendedor Fénix (12 Joyas Surtidas)' : 'Ej: Anillo Solitario Corona Real'}">
+        </div>
+
+        <div class="admin__field">
+          <label for="f-p" id="lbl-price">${isKit ? 'Precio Total del Kit al Mayor (COP)' : 'Precio (COP)'}</label>
+          <input id="f-p" type="number" min="0" step="1000" required value="${esc(e.price ?? '')}" placeholder="${isKit ? 'Ej: 2890000' : 'Ej: 620000'}">
+        </div>
+
+        <div class="admin__field">
+          <label for="f-c">Categoría</label>
+          <select id="f-c">${db.cats.map((c) => `<option value="${esc(c.id)}" ${(isNewKit ? c.id === 'm' : e.cat == c.id) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+        </div>
+
+        <div class="admin__field">
+          <label for="f-st" id="lbl-stock">${isKit ? 'Stock de Kits Disponibles (Paquetes / Cajas)' : 'Stock disponible (unidades)'}</label>
+          <input id="f-st" type="number" min="0" required value="${esc(e.stock ?? 3)}">
+        </div>
+
+        <!-- Campos Exclusivos de Kit Mayorista -->
+        <div id="kit-fields" class="admin__field--full" style="display:${isKit ? 'grid' : 'none'};grid-template-columns:repeat(2, minmax(0, 1fr));gap:var(--space-4)">
+          <div class="admin__field">
+            <label for="f-pieces" style="color:var(--gold-1)">📦 Piezas incluidas en el Kit</label>
+            <input id="f-pieces" maxlength="80" placeholder="Ej: 12 Joyas surtidas, 6 Unidades..." value="${esc(e.pieces || '')}">
+            <small style="color:var(--color-text-muted);font-size:0.7rem">Se muestra como distintivo de paquete en la vitrina mayorista.</small>
+          </div>
+
+          <div class="admin__field">
+            <label for="f-retail" style="color:var(--gold-1)">💰 Valor de reventa al detal / Margen (Opcional)</label>
+            <input id="f-retail" maxlength="100" placeholder="Ej: Sugerido al detal: $4.400.000 · Margen: 50%" value="${esc(e.suggestedRetail || '')}">
+            <small style="color:var(--color-text-muted);font-size:0.7rem">Informa al mayorista el potencial de ganancia que obtendrá al revender.</small>
+          </div>
+
+          <div class="admin__field admin__field--full">
+            <label for="f-breakdown" style="color:var(--gold-1)">📋 Desglose detallado del contenido del Kit</label>
+            <textarea id="f-breakdown" rows="2" maxlength="300" placeholder="Ej: 4 Anillos tallas 6-9, 3 Collares 50cm, 3 Pulseras y 2 Candongas con estuche de lujo">${esc(e.breakdown || '')}</textarea>
+            <small style="color:var(--color-text-muted);font-size:0.7rem">Explica exactamente qué modelos o piezas vienen dentro de la caja o paquete.</small>
+          </div>
+        </div>
+
+        <div class="admin__field">
+          <label for="f-t">Etiqueta comercial (opcional)</label>
+          <input id="f-t" maxlength="24" placeholder="${isKit ? 'Pack Ahorro, Más vendido, Para Emprender…' : 'Nuevo, Más vendido…'}" value="${esc(e.tag || '')}">
+        </div>
+
+        <div class="admin__field">
+          <label for="f-s" id="lbl-sizes">${isKit ? 'Tallas o medidas surtidas en el Kit' : 'Tallas o medidas, separadas por coma'}</label>
+          <input id="f-s" placeholder="${isKit ? 'Ej: Surtido comercial 6, 7, 8, 9 o 45-55 cm' : 'Ej: 6,7,8,9 · vacío si es talla única'}" value="${esc(e.sizes || '')}">
+        </div>
+
+        <div class="admin__field admin__field--full">
+          <label for="f-d" id="lbl-desc">${isKit ? 'Descripción y Garantía del Kit' : 'Descripción'}</label>
+          <textarea id="f-d" rows="3" maxlength="300" placeholder="${isKit ? 'Pack mayorista en oro 18K garantizado con estuches de lujo y paños de limpieza.' : ''}">${esc(e.desc || '')}</textarea>
+        </div>
+
+        <div class="admin__field admin__field--full">
+          <label for="f-f">Foto</label>
+          <div class="admin__photo">
+            <div class="admin__thumb" id="f-prev">${prev ? `<img src="${esc(prev)}" alt="">` : svg('p')}</div>
+            <input id="f-f" type="file" accept="image/*">
+          </div>
+        </div>
+
+        <label class="admin__check admin__field--full">
+          <input id="f-v" type="checkbox" ${e.on !== 0 ? 'checked' : ''}> Visible en la tienda
+        </label>
+
+        <div class="admin__row-actions admin__field--full">
+          <button class="button button--primary" type="submit" data-prod-submit>
+            ${isKit ? (isNew ? 'Registrar Kit Mayorista' : 'Guardar Kit Mayorista') : (isNew ? 'Registrar joya' : 'Guardar cambios')}
+          </button>
+          <button class="button button--ghost" type="button" data-a="back">Cancelar</button>
+        </div>
+      </form>
+    `;
   };
   const cats = () => `<form class="admin__card admin__inline" data-cat autocomplete="off"><div class="admin__field"><label for="c-n">Nueva categoría</label><input id="c-n" maxlength="30" placeholder="Ej: Dijes, Tobilleras" required></div><button class="button button--primary" type="submit">Crear</button></form>
     <div class="admin__list">${db.cats.map((c) => `<article class="admin__item admin__item--cat"><div class="admin__meta"><b>${esc(c.name)}</b><small>${db.prods.filter((p) => p.cat == c.id).length} joyas</small></div>
@@ -462,6 +576,39 @@
     root.append(toastEl);
     const pinInp = $('#s-p', root);
     if (pinInp) pinInp.value = '';
+
+    // Manejo interactivo del formulario al alternar entre Joya Individual y Kit Mayorista
+    const catSel = $('#f-c', root);
+    if (catSel) {
+      catSel.addEventListener('change', () => {
+        const isK = catSel.value === 'm';
+        const banner = $('#kit-banner', root);
+        const kitFields = $('#kit-fields', root);
+        const lblName = $('#lbl-name', root);
+        const lblPrice = $('#lbl-price', root);
+        const lblStock = $('#lbl-stock', root);
+        const lblSizes = $('#lbl-sizes', root);
+        const lblDesc = $('#lbl-desc', root);
+        const submitBtn = $('[data-prod-submit]', root);
+        const nameInp = $('#f-n', root);
+        const priceInp = $('#f-p', root);
+        const sizesInp = $('#f-s', root);
+        const tagInp = $('#f-t', root);
+
+        if (banner) banner.style.display = isK ? 'block' : 'none';
+        if (kitFields) kitFields.style.display = isK ? 'grid' : 'none';
+        if (lblName) lblName.textContent = isK ? 'Nombre del Kit / Lote Mayorista' : 'Nombre';
+        if (lblPrice) lblPrice.textContent = isK ? 'Precio Total del Kit al Mayor (COP)' : 'Precio (COP)';
+        if (lblStock) lblStock.textContent = isK ? 'Stock de Kits Disponibles (Paquetes / Cajas)' : 'Stock disponible (unidades)';
+        if (lblSizes) lblSizes.textContent = isK ? 'Tallas o medidas surtidas en el Kit' : 'Tallas o medidas, separadas por coma';
+        if (lblDesc) lblDesc.textContent = isK ? 'Descripción y Garantía del Kit' : 'Descripción';
+        if (nameInp && !nameInp.value) nameInp.placeholder = isK ? 'Ej: Kit Emprendedor Fénix (12 Joyas Surtidas)' : 'Ej: Anillo Solitario Corona Real';
+        if (priceInp && !priceInp.value) priceInp.placeholder = isK ? 'Ej: 2890000' : 'Ej: 620000';
+        if (sizesInp && !sizesInp.value) sizesInp.placeholder = isK ? 'Ej: Surtido comercial 6, 7, 8, 9 o 45-55 cm' : 'Ej: 6,7,8,9 · vacío si es talla única';
+        if (tagInp && !tagInp.value) tagInp.placeholder = isK ? 'Pack Ahorro, Más vendido, Para Emprender…' : 'Nuevo, Más vendido…';
+        if (submitBtn) submitBtn.textContent = isK ? 'Guardar Kit Mayorista' : 'Guardar joya';
+      });
+    }
   }
 
   /* ---- Acciones ---- */
@@ -481,16 +628,29 @@
   function saveProd() {
     const name = $('#f-n', root).value.trim(), cat = $('#f-c', root).value;
     if (!name || !cat) return toast('Falta nombre o categoría');
-    const old = db.prods.find((p) => p.id == edit) || {};
+    const old = (edit !== 'new' && edit !== 'new-kit') ? (db.prods.find((p) => p.id == edit) || {}) : {};
+    const isKit = cat === 'm';
+    const piecesEl = $('#f-pieces', root);
+    const breakdownEl = $('#f-breakdown', root);
+    const retailEl = $('#f-retail', root);
+
     const o = {
-      id: old.id || F.uid(), name, cat, price: Math.max(0, Math.round(+$('#f-p', root).value || 0)),
+      id: old.id || F.uid(),
+      name,
+      cat,
+      price: Math.max(0, Math.round(+$('#f-p', root).value || 0)),
       stock: Math.max(0, parseInt($('#f-st', root).value, 10) || 0),
-      tag: $('#f-t', root).value.trim(), desc: $('#f-d', root).value.trim(),
+      tag: $('#f-t', root).value.trim(),
+      desc: $('#f-d', root).value.trim(),
       sizes: [...new Set($('#f-s', root).value.split(',').map((s) => s.trim()).filter(Boolean))].slice(0, 14).join(','),
-      img: pend || old.img || '', on: $('#f-v', root).checked ? 1 : 0
+      img: pend || old.img || '',
+      on: $('#f-v', root).checked ? 1 : 0,
+      pieces: piecesEl ? piecesEl.value.trim() : (old.pieces || ''),
+      breakdown: breakdownEl ? breakdownEl.value.trim() : (old.breakdown || ''),
+      suggestedRetail: retailEl ? retailEl.value.trim() : (old.suggestedRetail || '')
     };
     db.prods = old.id ? db.prods.map((p) => (p.id == o.id ? o : p)) : [o, ...db.prods];
-    edit = null; pend = null; commit('Joya guardada');
+    edit = null; pend = null; commit(isKit ? 'Kit Mayorista guardado' : 'Joya guardada');
   }
   async function importBackup(file) {
     try {
@@ -499,7 +659,20 @@
       if (!ok) return toast('Respaldo inválido');
       if (!confirm('Esto reemplazará las joyas y categorías actuales. ¿Continuar?')) return;
       db.cats = d.cats.map((c) => ({ id: String(c.id), name: String(c.name).slice(0, 30) }));
-      db.prods = d.prods.map((p) => ({ id: String(p.id), name: String(p.name).slice(0, 80), price: Math.max(0, +p.price || 0), cat: String(p.cat), tag: String(p.tag || '').slice(0, 24), sizes: String(p.sizes || '').slice(0, 120), desc: String(p.desc || '').slice(0, 300), img: typeof p.img === 'string' && /^(data:image\/|https:)/.test(p.img) ? p.img : '', on: p.on === 0 ? 0 : 1 }));
+      db.prods = d.prods.map((p) => ({
+        id: String(p.id),
+        name: String(p.name).slice(0, 80),
+        price: Math.max(0, +p.price || 0),
+        cat: String(p.cat),
+        tag: String(p.tag || '').slice(0, 24),
+        sizes: String(p.sizes || '').slice(0, 120),
+        desc: String(p.desc || '').slice(0, 300),
+        pieces: String(p.pieces || '').slice(0, 80),
+        breakdown: String(p.breakdown || '').slice(0, 300),
+        suggestedRetail: String(p.suggestedRetail || '').slice(0, 100),
+        img: typeof p.img === 'string' && /^(data:image\/|https:)/.test(p.img) ? p.img : '',
+        on: p.on === 0 ? 0 : 1
+      }));
       commit('Respaldo restaurado');
     } catch (e) { toast('No se pudo leer el archivo'); }
   }
@@ -691,6 +864,7 @@
     if (a === 'menu') return root.classList.toggle('is-menu');
     if (a === 'go') { sec = t.dataset.k; edit = null; pend = null; root.classList.remove('is-menu'); return draw(); }
     if (a === 'new') { sec = 'p'; edit = 'new'; pend = null; return draw(); }
+    if (a === 'new-kit') { sec = 'p'; edit = 'new-kit'; pend = null; return draw(); }
     if (a === 'ep') { edit = id; pend = null; return draw(); }
     if (a === 'back') { edit = null; pend = null; return draw(); }
     if (a === 'dp') { if (confirm('¿Eliminar esta joya?')) { db.prods = db.prods.filter((p) => p.id != id); commit('Joya eliminada'); } return; }

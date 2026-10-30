@@ -190,9 +190,15 @@
         <img class="cart-item__img" src="${esc(item.image)}" alt="${esc(item.name)}">
         <div class="cart-item__info">
           <h4 class="cart-item__title">${esc(item.name)}</h4>
-          <span style="font-size:0.75rem; color:var(--color-text-muted); font-weight:var(--fw-medium); text-transform:uppercase;">
-            Talla: <strong>${esc(item.size)}</strong>
-          </span>
+          ${item.isKit ? `
+            <span style="font-size:0.75rem; color:var(--gold-1); font-weight:var(--fw-medium); text-transform:uppercase; display:inline-block; margin-bottom:2px">
+              📦 <strong>${esc(item.size)}</strong>
+            </span>
+          ` : `
+            <span style="font-size:0.75rem; color:var(--color-text-muted); font-weight:var(--fw-medium); text-transform:uppercase;">
+              Talla: <strong>${esc(item.size)}</strong>
+            </span>
+          `}
           <span class="cart-item__price">${formatCOP(item.price)}</span>
           <div class="cart-item__qty-controls">
             <button type="button" class="cart-item__qty-btn" data-qty-change="-1" aria-label="Disminuir">−</button>
@@ -207,7 +213,7 @@
     // Prellenar campos ocultos con resumen estructurado para FormSubmit
     if (checkoutDetailsInput) {
       const itemsList = cart.map((i, idx) => 
-        `[${idx + 1}] ${i.name} (Talla: ${i.size}) | Cantidad: ${i.quantity} | Unitario: ${formatCOP(i.price)} | Subtotal: ${formatCOP(i.price * i.quantity)}`
+        `[${idx + 1}] ${i.name} (${i.isKit ? i.size : `Talla: ${i.size}`}) | Cantidad: ${i.quantity} | Unitario: ${formatCOP(i.price)} | Subtotal: ${formatCOP(i.price * i.quantity)}`
       ).join('\n');
       checkoutDetailsInput.value = itemsList;
     }
@@ -231,7 +237,7 @@
         const delta = parseInt(e.target.dataset.qtyChange, 10);
         const prod = window.FYNX && FYNX.db.prods.find(p => p.id == cart[itemIndex].id);
         if (delta > 0 && prod && cart[itemIndex].quantity >= (prod.stock || 0)) {
-          alert(`Solo hay ${prod.stock} piezas disponibles de esta joya.`);
+          alert(`Solo hay ${prod.stock} ${cart[itemIndex].isKit ? "kits disponibles de este lote" : "piezas disponibles de esta joya"}.`);
           return;
         }
         cart[itemIndex].quantity += delta;
@@ -252,22 +258,49 @@
     const btn = e.target.closest('[data-add-to-cart]');
     const card = btn && btn.closest('[data-product]');
     if (!card) return;
+    const isKit = card.dataset.category === 'm' || card.dataset.isKit === '1';
     const product = {
       id: card.dataset.productId,
       name: card.dataset.productName,
       price: parseInt(card.dataset.productPrice, 10) || 0,
-      image: card.dataset.productImage
+      image: card.dataset.productImage,
+      isKit: isKit
     };
     const prodData = window.FYNX && FYNX.db.prods.find(p => p.id == product.id);
     if (prodData && Number(prodData.stock) <= 0) {
-      alert('Esta pieza se encuentra agotada temporalmente.');
+      alert(isKit ? 'Este kit mayorista se encuentra agotado temporalmente.' : 'Esta pieza se encuentra agotada temporalmente.');
       return;
     }
     const inCart = cart.find(i => i.id == product.id);
     if (inCart && prodData && inCart.quantity >= (Number(prodData.stock) || 0)) {
-      alert(`Has alcanzado el stock disponible (${prodData.stock} unidades).`);
+      alert(`Has alcanzado el stock disponible (${prodData.stock} ${isKit ? 'kits' : 'unidades'}).`);
       return;
     }
+
+    // Si es un Kit Mayorista, es un lote surtido: omitir modal de talla individual y agregar directamente
+    if (isKit) {
+      const kitLabel = card.dataset.productPieces ? `Pack (${card.dataset.productPieces})` : 'Kit Completo Surtido';
+      const cartItemKey = `${product.id}-kit`;
+      const existing = cart.find(i => i.cartKey === cartItemKey);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          cartKey: cartItemKey,
+          id: product.id,
+          name: product.name,
+          size: kitLabel,
+          price: product.price,
+          image: product.image,
+          quantity: 1,
+          isKit: true
+        });
+      }
+      saveCart();
+      openCart();
+      return;
+    }
+
     const sizes = getSizesForProduct(card);
     if (sizes.length) return openSizeModal(product, sizes);
     currentPendingProduct = product;
@@ -282,7 +315,7 @@
       if (!cart.length) return;
       const fd = new FormData(checkoutForm);
       const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      const lines = cart.map((i, n) => `${n + 1}. *${i.name}* (Talla: ${i.size}) x${i.quantity} — ${formatCOP(i.price * i.quantity)}`).join('\n');
+      const lines = cart.map((i, n) => `${n + 1}. *${i.name}* (${i.isKit ? i.size : `Talla: ${i.size}`}) x${i.quantity} — ${formatCOP(i.price * i.quantity)}`).join('\n');
       const cliente = `*Nombre:* ${fd.get('Nombre del Cliente')}
 *Teléfono:* ${fd.get('Telefono de Contacto')}
 *Dirección:* ${fd.get('Direccion de Envio')}

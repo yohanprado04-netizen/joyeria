@@ -107,7 +107,12 @@
             price: Number(targetCard.dataset.productPrice) || 0,
             img: targetCard.dataset.productImage || 'logo.jpg',
             desc: targetCard.querySelector('.product-card__detail')?.textContent || 'Alta orfebrería en oro 18K garantizado.',
-            stock: Number(targetCard.dataset.productStock) || 1
+            stock: Number(targetCard.dataset.productStock) || 1,
+            cat: targetCard.dataset.category || '',
+            isKit: targetCard.dataset.isKit === '1' || targetCard.dataset.category === 'm',
+            pieces: targetCard.dataset.productPieces || '',
+            breakdown: targetCard.dataset.productBreakdown || '',
+            suggestedRetail: targetCard.dataset.productRetail || ''
           };
         }
 
@@ -156,8 +161,21 @@
       imgEl.src = imgSrc;
       imgEl.alt = p.name || 'Joya Fynx Dorado';
     }
-    if (titleEl) titleEl.textContent = p.name || 'Pieza Exclusiva';
-    if (descEl) descEl.textContent = p.desc || 'Pieza forjada a mano en oro macizo 18K garantizado.';
+    const isKit = p.cat === 'm' || p.isKit;
+    const esc = (window.FYNX && window.FYNX.esc) ? window.FYNX.esc : (s) => String(s);
+    if (titleEl) titleEl.textContent = p.name || (isKit ? 'Kit Mayorista Fynx' : 'Pieza Exclusiva');
+    if (descEl) {
+      if (isKit && (p.pieces || p.breakdown || p.suggestedRetail)) {
+        descEl.innerHTML = `
+          ${p.pieces ? `<div style="color:var(--gold-1);font-weight:600;margin-bottom:6px;font-size:0.9rem">📦 Incluye: ${esc(p.pieces)}</div>` : ''}
+          ${p.breakdown ? `<div style="margin-bottom:8px;line-height:1.45;color:var(--color-text)">📋 <b>Contenido:</b> ${esc(p.breakdown)}</div>` : ''}
+          ${p.suggestedRetail ? `<div style="color:var(--gold-2);font-size:0.85rem;margin-bottom:8px;font-weight:500">💰 <b>Ganancia estimada:</b> ${esc(p.suggestedRetail)}</div>` : ''}
+          <div style="color:var(--color-text-muted);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px">${esc(p.desc || 'Oro 18K garantizado de por vida.')}</div>
+        `;
+      } else {
+        descEl.textContent = p.desc || 'Pieza forjada a mano en oro macizo 18K garantizado.';
+      }
+    }
     if (priceEl) {
       const money = (window.FYNX && window.FYNX.money) ? window.FYNX.money : (n) => `$ ${n}`;
       priceEl.textContent = money(p.price || 0);
@@ -165,7 +183,7 @@
     if (btnAction) {
       const hasStock = typeof p.stock !== 'undefined' ? Number(p.stock) > 0 : true;
       btnAction.disabled = !hasStock;
-      btnAction.textContent = hasStock ? 'Agregar al carrito' : 'Pieza Agotada';
+      btnAction.textContent = hasStock ? (isKit ? 'Pedir Kit Mayorista' : 'Agregar al carrito') : (isKit ? 'Kit Agotado' : 'Pieza Agotada');
       btnAction.style.opacity = hasStock ? '1' : '0.5';
     }
 
