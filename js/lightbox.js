@@ -167,9 +167,9 @@
     if (descEl) {
       if (isKit && (p.pieces || p.breakdown || p.suggestedRetail)) {
         descEl.innerHTML = `
-          ${p.pieces ? `<div style="color:var(--gold-1);font-weight:600;margin-bottom:6px;font-size:0.9rem">📦 Incluye: ${esc(p.pieces)}</div>` : ''}
-          ${p.breakdown ? `<div style="margin-bottom:8px;line-height:1.45;color:var(--color-text)">📋 <b>Contenido:</b> ${esc(p.breakdown)}</div>` : ''}
-          ${p.suggestedRetail ? `<div style="color:var(--gold-2);font-size:0.85rem;margin-bottom:8px;font-weight:500">💰 <b>Ganancia estimada:</b> ${esc(p.suggestedRetail)}</div>` : ''}
+          ${p.pieces ? `<div style="color:var(--gold-1);font-weight:600;margin-bottom:6px;font-size:0.9rem;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Incluye: ${esc(p.pieces)}</div>` : ''}
+          ${p.breakdown ? `<div style="margin-bottom:8px;line-height:1.45;color:var(--color-text);display:flex;align-items:flex-start;gap:6px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:2px;flex:none"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg><div><b>Contenido:</b> ${esc(p.breakdown)}</div></div>` : ''}
+          ${p.suggestedRetail ? `<div style="color:var(--gold-2);font-size:0.85rem;margin-bottom:8px;font-weight:500;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span><b>Ganancia estimada:</b> ${esc(p.suggestedRetail)}</span></div>` : ''}
           <div style="color:var(--color-text-muted);font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px">${esc(p.desc || 'Oro 18K garantizado de por vida.')}</div>
         `;
       } else {

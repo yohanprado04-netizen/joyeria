@@ -12,9 +12,12 @@
     fin: '<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
     c: '<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1"/>',
     s: '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="8" cy="18" r="2"/>',
-    out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'
+    out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+    box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+    profit: '<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    clipboard: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>'
   };
-  const svg = (k) => `<svg viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+  const svg = (k, sz) => `<svg viewBox="0 0 24 24" ${sz ? `width="${sz}" height="${sz}" ` : ''}aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle">${IC[k] || ''}</svg>`;
   let root, toastEl, authed = false, defaultPin = false, sec = 'home', edit = null, pend = null, idleT, toastT;
   let stockFilter = 'all';
 
@@ -206,7 +209,7 @@
                 <div class="admin__thumb" ${p.img ? `data-zoom-img="${esc(p.img)}" data-zoom-title="${esc(p.name)}" data-zoom-desc="${esc(p.desc || '')}" data-zoom-price="${Number(p.price) || 0}" style="cursor:pointer" title="Toca para ampliar y detallar foto"` : ''}>${p.img ? `<img src="${esc(p.img)}" alt="">` : svg('p')}</div>
                 <div class="admin__meta">
                   <b>${esc(p.name)}</b>
-                  <small>${isKit ? '<span class="admin__badge admin__badge--warn" style="margin-right:2px">KIT MAYORISTA</span> ' : ''}${esc(F.catName(p.cat))} · ${money(p.price)} · <span class="admin__badge ${badgeClass}">${badgeText}</span>${(isKit && p.pieces) ? ` · 📦 ${esc(p.pieces)}` : ''}</small>
+                  <small>${isKit ? '<span class="admin__badge admin__badge--warn" style="margin-right:2px">KIT MAYORISTA</span> ' : ''}${esc(F.catName(p.cat))} · ${money(p.price)} · <span class="admin__badge ${badgeClass}">${badgeText}</span>${(isKit && p.pieces) ? ` · <span style="display:inline-flex;align-items:center;gap:3px;color:var(--gold-1)">${svg('box', 12)} ${esc(p.pieces)}</span>` : ''}</small>
                 </div>
                 <div class="admin__stock-ctrl">
                   <button type="button" class="admin__stock-btn" data-a="st-dec" data-id="${esc(p.id)}" aria-label="Restar 1">−</button>
@@ -415,7 +418,7 @@
                 <small>
                   ${isKit ? '<span class="admin__badge admin__badge--warn" style="margin-right:4px">KIT MAYORISTA</span>' : ''}
                   ${esc(F.catName(p.cat))} · ${money(p.price)} · Stock: <b>${p.stock ?? 0}</b>${isKit ? ' kits' : ' uds.'}${p.on ? '' : ' · Oculta'}
-                  ${(isKit && p.pieces) ? ` · <span style="color:var(--gold-1)">📦 ${esc(p.pieces)}</span>` : ''}
+                  ${(isKit && p.pieces) ? ` · <span style="color:var(--gold-1);display:inline-flex;align-items:center;gap:3px">${svg('box', 12)} ${esc(p.pieces)}</span>` : ''}
                 </small>
               </div>
               <div class="admin__acts">
@@ -440,7 +443,7 @@
       <form class="admin__form" data-prod autocomplete="off">
         <div id="kit-banner" class="admin__field--full" style="display:${isKit ? 'block' : 'none'};background:linear-gradient(135deg, rgba(212,175,55,0.14) 0%, rgba(10,9,8,0.92) 100%);border:1px solid var(--gold-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius);margin-bottom:var(--space-2)">
           <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:4px">
-            <span style="font-size:1.2rem">📦</span>
+            <span style="color:var(--gold-1);display:inline-flex;align-items:center">${svg('box', 18)}</span>
             <b style="color:var(--gold-1);letter-spacing:0.12em;text-transform:uppercase;font-size:0.85rem">Formulario Especializado: Kit / Lote Mayorista</b>
             <span class="admin__badge admin__badge--warn" style="margin-left:auto">MODO MAYORISTA</span>
           </div>
@@ -470,19 +473,19 @@
         <!-- Campos Exclusivos de Kit Mayorista -->
         <div id="kit-fields" class="admin__field--full" style="display:${isKit ? 'grid' : 'none'};grid-template-columns:repeat(2, minmax(0, 1fr));gap:var(--space-4)">
           <div class="admin__field">
-            <label for="f-pieces" style="color:var(--gold-1)">📦 Piezas incluidas en el Kit</label>
+            <label for="f-pieces" style="color:var(--gold-1);display:inline-flex;align-items:center;gap:4px">${svg('box', 14)} Piezas incluidas en el Kit</label>
             <input id="f-pieces" maxlength="80" placeholder="Ej: 12 Joyas surtidas, 6 Unidades..." value="${esc(e.pieces || '')}">
             <small style="color:var(--color-text-muted);font-size:0.7rem">Se muestra como distintivo de paquete en la vitrina mayorista.</small>
           </div>
 
           <div class="admin__field">
-            <label for="f-retail" style="color:var(--gold-1)">💰 Valor de reventa al detal / Margen (Opcional)</label>
+            <label for="f-retail" style="color:var(--gold-1);display:inline-flex;align-items:center;gap:4px">${svg('profit', 14)} Valor de reventa al detal / Margen (Opcional)</label>
             <input id="f-retail" maxlength="100" placeholder="Ej: Sugerido al detal: $4.400.000 · Margen: 50%" value="${esc(e.suggestedRetail || '')}">
             <small style="color:var(--color-text-muted);font-size:0.7rem">Informa al mayorista el potencial de ganancia que obtendrá al revender.</small>
           </div>
 
           <div class="admin__field admin__field--full">
-            <label for="f-breakdown" style="color:var(--gold-1)">📋 Desglose detallado del contenido del Kit</label>
+            <label for="f-breakdown" style="color:var(--gold-1);display:inline-flex;align-items:center;gap:4px">${svg('clipboard', 14)} Desglose detallado del contenido del Kit</label>
             <textarea id="f-breakdown" rows="2" maxlength="300" placeholder="Ej: 4 Anillos tallas 6-9, 3 Collares 50cm, 3 Pulseras y 2 Candongas con estuche de lujo">${esc(e.breakdown || '')}</textarea>
             <small style="color:var(--color-text-muted);font-size:0.7rem">Explica exactamente qué modelos o piezas vienen dentro de la caja o paquete.</small>
           </div>

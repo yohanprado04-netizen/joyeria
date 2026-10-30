@@ -40,8 +40,9 @@
           <h3 class="product-card__name">${esc(p.name)}</h3>
 
           ${(isKit && piecesText) ? `
-            <div style="display:inline-flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--gold-1);background:rgba(212,175,55,0.12);padding:2px 8px;border-radius:4px;margin-bottom:6px;font-weight:var(--fw-medium)">
-              <span>📦 Incluye: <b>${esc(piecesText)}</b></span>
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--gold-1);background:rgba(212,175,55,0.12);padding:2px 8px;border-radius:4px;margin-bottom:6px;font-weight:var(--fw-medium)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <span>Incluye: <b>${esc(piecesText)}</b></span>
             </div>
           ` : ''}
 
@@ -52,8 +53,9 @@
           </p>
 
           ${(isKit && retailText) ? `
-            <div style="font-size:0.75rem;color:var(--gold-2);margin-bottom:4px;font-weight:var(--fw-medium)">
-              💰 <small style="color:var(--color-text-muted)">Ganancia:</small> ${esc(retailText)}
+            <div style="display:flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--gold-2);margin-bottom:4px;font-weight:var(--fw-medium)">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span><small style="color:var(--color-text-muted)">Ganancia:</small> ${esc(retailText)}</span>
             </div>
           ` : ''}
 
