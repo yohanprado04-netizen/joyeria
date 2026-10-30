@@ -90,18 +90,16 @@
       openIosModal();
     });
 
-    // Pantalla de carga con logo y barra dorada: se activa al abrir la PWA instalada en celular
+    // Pantalla de carga con logo y barra dorada: se muestra de entrada al ingresar al sitio
     const splashEl = document.getElementById('pwa-splash');
-    if (splashEl && isStandalone()) {
-      splashEl.removeAttribute('hidden');
-      splashEl.style.display = 'flex';
+    if (splashEl) {
       setTimeout(() => {
         splashEl.classList.add('is-hidden');
         setTimeout(() => {
           splashEl.setAttribute('hidden', '');
           splashEl.style.display = 'none';
-        }, 400);
-      }, 1350);
+        }, 450);
+      }, 1250);
     }
   }
 
