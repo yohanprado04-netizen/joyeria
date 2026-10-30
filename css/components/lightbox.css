@@ -2,8 +2,8 @@
 .image-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 600;
-  display: flex;
+  z-index: 3000;
+  display: none;
   flex-direction: column;
   background: rgba(6, 6, 6, 0.96);
   backdrop-filter: blur(12px);
@@ -12,15 +12,13 @@
   font-family: var(--font-sans);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.28s ease, visibility 0.28s ease;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
   user-select: none;
 }
 .image-lightbox.is-open {
-  opacity: 1;
-  visibility: visible;
-}
-.image-lightbox[hidden] {
-  display: none;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .image-lightbox__header {
@@ -30,8 +28,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: calc(var(--space-4) + var(--safe-top)) var(--space-6) var(--space-3);
+  padding: calc(var(--space-3) + var(--safe-top)) var(--space-6) var(--space-3);
   background: linear-gradient(180deg, rgba(6,6,6,0.95) 0%, rgba(6,6,6,0) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .image-lightbox__tag {
   display: inline-block;
@@ -109,7 +108,7 @@
 }
 .image-lightbox__img {
   max-width: min(88vw, 750px);
-  max-height: min(72vh, 680px);
+  max-height: min(68vh, 650px);
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(212, 175, 55, 0.2);
@@ -120,7 +119,7 @@
 .image-lightbox__canvas.is-zoomed .image-lightbox__img {
   max-width: none;
   max-height: none;
-  width: 1400px;
+  width: 1350px;
   height: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 0 1px var(--gold-2);
   cursor: zoom-out;
@@ -131,12 +130,12 @@
   bottom: var(--space-4);
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(10, 10, 10, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(10, 10, 10, 0.82);
+  border: 1px solid var(--gold-2);
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.75rem;
-  color: var(--color-text-muted);
+  color: var(--gold-1);
   letter-spacing: 0.05em;
   pointer-events: none;
   transition: opacity 0.3s;
@@ -155,7 +154,7 @@
   flex-wrap: wrap;
   padding: var(--space-3) var(--space-6) calc(var(--space-4) + var(--safe-bottom));
   background: linear-gradient(0deg, rgba(6,6,6,0.95) 0%, rgba(6,6,6,0) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .image-lightbox__info {
   flex: 1;
@@ -177,42 +176,56 @@
   flex-shrink: 0;
 }
 
-/* Indicador visual de zoom en las tarjetas de la tienda */
+/* Indicador visual de zoom y apertura en las tarjetas de la tienda */
+.product-card {
+  cursor: pointer;
+}
 .product-card__media {
   cursor: pointer;
   position: relative;
 }
+.product-card__name {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.product-card:hover .product-card__name {
+  color: var(--gold-1);
+}
+
 .product-card__zoom-hint {
   position: absolute;
-  bottom: var(--space-3);
-  right: var(--space-3);
+  bottom: var(--space-2);
+  right: var(--space-2);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 10px;
-  background: rgba(7, 7, 7, 0.82);
+  background: rgba(7, 7, 7, 0.88);
   border: 1px solid var(--gold-2);
   border-radius: 20px;
   color: var(--gold-1);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: var(--fw-medium);
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  opacity: 0.9;
+  transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: none;
 }
-.product-card:hover .product-card__zoom-hint,
-.product-card__media:focus .product-card__zoom-hint {
+.product-card:hover .product-card__zoom-hint {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(-2px);
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold-1);
 }
 
 @media (max-width: 767px) {
   .product-card__zoom-hint {
-    opacity: 0.85;
+    opacity: 0.95;
     transform: none;
+    font-size: 0.65rem;
+    padding: 3px 8px;
   }
   .image-lightbox__header {
     padding-inline: var(--space-4);

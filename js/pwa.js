@@ -89,6 +89,20 @@
       // Si el navegador no soporta beforeinstallprompt (ej. Firefox o Safari en Mac/PC)
       openIosModal();
     });
+
+    // Pantalla de carga con logo y barra dorada: se activa al abrir la PWA instalada en celular
+    const splashEl = document.getElementById('pwa-splash');
+    if (splashEl && isStandalone()) {
+      splashEl.removeAttribute('hidden');
+      splashEl.style.display = 'flex';
+      setTimeout(() => {
+        splashEl.classList.add('is-hidden');
+        setTimeout(() => {
+          splashEl.setAttribute('hidden', '');
+          splashEl.style.display = 'none';
+        }, 400);
+      }, 1350);
+    }
   }
 
   if (document.readyState === 'loading') {

@@ -16,18 +16,23 @@
     canvasEl = el.querySelector('[data-lightbox-canvas]');
     viewportEl = el.querySelector('[data-lightbox-viewport]');
 
-    // Botones de cierre
+    // Botones de cierre (X y backdrop)
     el.querySelectorAll('[data-lightbox-close]').forEach((btn) => {
-      btn.addEventListener('click', close);
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+      });
     });
 
-    // Controles de zoom
+    // Controles de zoom en la barra superior
     el.querySelectorAll('[data-lightbox-zoom]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         const action = btn.dataset.lightboxZoom;
-        if (action === 'in') setZoom(zoomLevel + 0.5);
-        else if (action === 'out') setZoom(zoomLevel - 0.5);
+        if (action === 'in') setZoom(zoomLevel + 0.6);
+        else if (action === 'out') setZoom(zoomLevel - 0.6);
         else if (action === 'reset') setZoom(1);
       });
     });
@@ -35,12 +40,13 @@
     // El zoom se activa EXCLUSIVAMENTE al tocar o hacer clic sobre la foto de la joya
     if (imgEl) {
       imgEl.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         setZoom(zoomLevel === 1 ? 2.2 : 1);
       });
     }
 
-    // Tocar o hacer clic en el fondo oscuro exterior cierra el visor de inmediato
+    // Tocar el fondo oscuro fuera de la imagen cierra el visor
     if (viewportEl) {
       viewportEl.addEventListener('click', (e) => {
         if (e.target === viewportEl || e.target === canvasEl) {
@@ -51,11 +57,12 @@
 
     // Acción de compra directa desde el visor
     if (btnAction) {
-      btnAction.addEventListener('click', () => {
+      btnAction.addEventListener('click', (e) => {
+        e.preventDefault();
         if (!currentProduct) return;
+        const prodId = currentProduct.id;
         close();
-        // Disparar apertura del modal de talla o agregar al carrito
-        const card = document.querySelector(`[data-product-id="${currentProduct.id}"]`);
+        const card = document.querySelector(`[data-product-id="${prodId}"]`);
         if (card) {
           const addBtn = card.querySelector('[data-add-to-cart]');
           if (addBtn) addBtn.click();
@@ -63,34 +70,60 @@
       });
     }
 
-    // Cerrar con Escape
+    // Cerrar con tecla Escape
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && el && el.classList.contains('is-open')) {
         close();
       }
     });
 
-    // Delegación de clics en tarjetas de la tienda y miniaturas del panel para abrir visor
+    // Delegación global: cualquier clic en la foto, título o tarjeta abre el visor en alta resolución
     document.addEventListener('click', (e) => {
-      // 1. Tarjetas del catálogo oficial
+      // Si el clic fue en "Agregar al carrito" o dentro del modal, no abrir visor
+      if (e.target.closest('[data-add-to-cart]') || e.target.closest('.image-lightbox') || e.target.closest('.size-modal-overlay') || e.target.closest('.cart-drawer')) {
+        return;
+      }
+
+      // 1. Clic en la tarjeta de producto o en su foto / título en la tienda
+      const card = e.target.closest('.product-card');
       const media = e.target.closest('[data-zoom-pid]');
-      if (media && !e.target.closest('[data-add-to-cart]')) {
+      if (card || media) {
+        const targetCard = card || media.closest('.product-card');
+        const pid = (media && media.dataset.zoomPid) || (targetCard && targetCard.dataset.productId);
+        if (!pid) return;
+
         e.preventDefault();
-        const pid = media.dataset.zoomPid;
-        const p = (window.FYNX && window.FYNX.db && window.FYNX.db.prods) ? window.FYNX.db.prods.find((x) => x.id == pid) : null;
+        
+        // Buscar producto en la base de datos de FYNX
+        let p = (window.FYNX && window.FYNX.db && Array.isArray(window.FYNX.db.prods)) 
+          ? window.FYNX.db.prods.find((x) => String(x.id) === String(pid)) 
+          : null;
+
+        // Si no está en memoria, extraer datos directamente de los atributos HTML de la tarjeta
+        if (!p && targetCard) {
+          p = {
+            id: pid,
+            name: targetCard.dataset.productName || 'Joya Exclusiva',
+            price: Number(targetCard.dataset.productPrice) || 0,
+            img: targetCard.dataset.productImage || 'logo.jpg',
+            desc: targetCard.querySelector('.product-card__detail')?.textContent || 'Alta orfebrería en oro 18K garantizado.',
+            stock: Number(targetCard.dataset.productStock) || 1
+          };
+        }
+
         if (p) open(p);
         return;
       }
 
-      // 2. Miniaturas del panel admin (Joyas y Stock)
+      // 2. Miniaturas del panel administrativo (Joyas y Stock)
       const thumb = e.target.closest('.admin__thumb[data-zoom-img]');
       if (thumb) {
         e.preventDefault();
         open({
           img: thumb.dataset.zoomImg,
           name: thumb.dataset.zoomTitle || 'Detalle de Joya',
-          desc: thumb.dataset.zoomDesc || 'Alta orfebrería en oro 18K.',
-          price: thumb.dataset.zoomPrice || 0,
+          desc: thumb.dataset.zoomDesc || 'Alta orfebrería en oro 18K garantizado.',
+          price: Number(thumb.dataset.zoomPrice) || 0,
           stock: 1
         });
       }
@@ -102,7 +135,7 @@
     if (canvasEl) {
       if (zoomLevel > 1) {
         canvasEl.classList.add('is-zoomed');
-        canvasEl.style.transform = `scale(${zoomLevel / 1.6})`;
+        canvasEl.style.transform = `scale(${zoomLevel / 1.5})`;
       } else {
         canvasEl.classList.remove('is-zoomed');
         canvasEl.style.transform = '';
@@ -112,6 +145,7 @@
 
   function open(p) {
     if (!el) init();
+    if (!el) el = document.querySelector('[data-lightbox]');
     if (!el) return;
 
     currentProduct = p;
@@ -125,22 +159,25 @@
     if (titleEl) titleEl.textContent = p.name || 'Pieza Exclusiva';
     if (descEl) descEl.textContent = p.desc || 'Pieza forjada a mano en oro macizo 18K garantizado.';
     if (priceEl) {
-      const money = window.FYNX && window.FYNX.money ? window.FYNX.money : (n) => `$ ${n}`;
+      const money = (window.FYNX && window.FYNX.money) ? window.FYNX.money : (n) => `$ ${n}`;
       priceEl.textContent = money(p.price || 0);
     }
     if (btnAction) {
-      const hasStock = Number(p.stock) > 0;
+      const hasStock = typeof p.stock !== 'undefined' ? Number(p.stock) > 0 : true;
       btnAction.disabled = !hasStock;
       btnAction.textContent = hasStock ? 'Agregar al carrito' : 'Pieza Agotada';
-      if (!hasStock) btnAction.style.opacity = '0.5';
-      else btnAction.style.opacity = '';
+      btnAction.style.opacity = hasStock ? '1' : '0.5';
     }
 
+    // Mostrar el visor de forma infalible
+    el.removeAttribute('hidden');
     el.hidden = false;
+    el.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';
-    requestAnimationFrame(() => {
-      el.classList.add('is-open');
-    });
+    
+    // Forzar reflow para animación suave
+    void el.offsetWidth;
+    el.classList.add('is-open');
   }
 
   function close() {
@@ -148,10 +185,12 @@
     el.classList.remove('is-open');
     setZoom(1);
     setTimeout(() => {
+      el.style.display = 'none';
+      el.setAttribute('hidden', '');
       el.hidden = true;
       document.documentElement.style.overflow = '';
       currentProduct = null;
-    }, 280);
+    }, 240);
   }
 
   if (typeof window !== 'undefined') {

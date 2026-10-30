@@ -105,3 +105,110 @@
   margin-left: 6px;
   color: var(--gold-1);
 }
+
+/* Pantalla de Carga Luxury de la PWA con logo y barra dorada */
+.pwa-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at 50% 38%, #1a1508 0%, #070707 65%, #030303 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  text-align: center;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.pwa-splash[hidden] {
+  display: none !important;
+}
+.pwa-splash.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.pwa-splash__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  max-width: 320px;
+  width: 100%;
+}
+.pwa-splash__logo-wrap {
+  position: relative;
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  padding: 3px;
+  background: var(--gold);
+  box-shadow: 0 0 35px rgba(212, 175, 55, 0.35);
+  animation: pwaPulse 2.2s infinite ease-in-out;
+}
+.pwa-splash__logo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.pwa-splash__brand {
+  margin: var(--space-3) 0 0;
+  font-size: 1.25rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-brand);
+  text-transform: uppercase;
+  background: var(--gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.pwa-splash__slogan {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+  font-weight: var(--fw-light);
+}
+
+/* Barra de carga dorada con destello metálico */
+.pwa-splash__progress-track {
+  width: 180px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: var(--space-6);
+  position: relative;
+}
+.pwa-splash__progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--gold);
+  border-radius: 4px;
+  box-shadow: 0 0 12px var(--gold-2);
+  animation: pwaGoldLoad 1.3s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+.pwa-splash__status {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-1);
+  opacity: 0.85;
+}
+
+@keyframes pwaPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(212, 175, 55, 0.3); }
+  50% { transform: scale(1.04); box-shadow: 0 0 45px rgba(212, 175, 55, 0.55); }
+}
+
+@keyframes pwaGoldLoad {
+  0% { width: 0%; }
+  45% { width: 65%; }
+  85% { width: 92%; }
+  100% { width: 100%; }
+}
