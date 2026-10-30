@@ -294,6 +294,9 @@
           body: JSON.stringify({ _subject: 'Nuevo pedido · Fynx Dorado', _captcha: 'false', Pedido: lines, Total: formatCOP(total), Cliente: cliente })
         }).catch(() => {});
       }
+      // Balanceo inteligente o asignación de línea de WhatsApp
+      const targetWa = (window.FYNX && FYNX.getNextWa) ? FYNX.getNextWa() : { num: '573116240316', label: 'Línea 1', line: 1 };
+
       // Registra el pedido como PENDIENTE (NO descuenta el stock aún).
       // Envía notificación al celular del administrador para que confirme la compra.
       if (window.FYNX && FYNX.registerPendingOrder) {
@@ -310,18 +313,22 @@
             name: fd.get('Nombre del Cliente') || 'Cliente WhatsApp',
             phone: fd.get('Telefono de Contacto') || '',
             address: fd.get('Direccion de Envio') || '',
-            payment: fd.get('Metodo de Pago') || 'Transferencia'
+            payment: fd.get('Metodo de Pago') || 'Transferencia',
+            advisorLine: targetWa.line || 1,
+            advisorLabel: targetWa.label || 'Línea 1'
           }
         );
       }
 
-      window.open(FYNX.waUrl(`Hola Joyería Fynx Dorado, quiero hacer este pedido:
+      const waMsg = `Hola Joyería Fynx Dorado, quiero hacer este pedido:
 
 ${lines}
 
 *Total:* ${formatCOP(total)}
 
-${cliente}`), '_blank', 'noopener');
+${cliente}`;
+
+      window.open(`https://wa.me/${targetWa.num}?text=${encodeURIComponent(waMsg)}`, '_blank', 'noopener');
       cart = [];
       saveCart();
       checkoutForm.reset();

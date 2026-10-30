@@ -71,6 +71,23 @@
       if (b) { cat = b.dataset.filter; render(); }
     });
 
+    // Delegación para enlaces y botón flotante de WhatsApp: balanceo 50/50 o selector de asesor
+    document.addEventListener('click', (e) => {
+      const waLink = e.target.closest('[data-wa-link], .whatsapp-float');
+      if (!waLink) return;
+
+      if (window.FYNX && FYNX.hasTwoLines && FYNX.hasTwoLines() && FYNX.db.cfg.waMode === 'select') {
+        e.preventDefault();
+        FYNX.openWaAdvisorModal(waLink.dataset.waMsg || 'Hola Joyería Fynx Dorado, deseo asesoría personalizada.');
+        return;
+      }
+
+      if (window.FYNX && FYNX.waUrl) {
+        const msg = waLink.dataset.waMsg || 'Hola Joyería Fynx Dorado, quiero información de sus joyas.';
+        waLink.href = FYNX.waUrl(msg);
+      }
+    });
+
     F.render = render;
     render();
   };

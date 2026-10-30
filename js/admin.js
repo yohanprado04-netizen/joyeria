@@ -37,11 +37,12 @@
     if (ok) {
       setLock({ n: 0, until: 0 });
       authed = true;
-      localStorage.setItem(AUTH_KEY, 'true'); // Mantiene la sesión abierta
+      localStorage.setItem(AUTH_KEY, 'true'); // Mantiene la sesión abierta en PWA y navegador
       defaultPin = pin === '1234';
       sec = 'home';
       edit = null;
       draw();
+      updateAdminBadge();
       return '';
     }
     const n = L.n + 1;
@@ -132,6 +133,7 @@
                       <small style="color:var(--color-text-muted)">${new Date(s.date).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}</small>
                       ${statusBadge}
                       <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${pago}</span>
+                      ${(s.client && (s.client.advisorLabel || s.client.advisorLine)) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.15);color:var(--gold-1);border:1px solid var(--gold-2)">${esc(s.client.advisorLabel || `Línea ${s.client.advisorLine}`)}</span>` : ''}
                     </div>
                     <div style="font-size:0.875rem;color:var(--color-text);margin-bottom:3px">
                       <b>${esc((s.client && s.client.name) || 'Cliente WhatsApp')}</b>
@@ -157,7 +159,7 @@
         <button class="button button--ghost" data-a="go" data-k="fin">Ver Finanzas</button>
         <button class="button button--ghost" data-a="go" data-k="c">Categorías</button>
         <button class="button button--ghost" data-a="load-seed">Cargar datos de prueba</button>
-        <button class="button button--ghost" data-a="close">Ver tienda</button></div></div>`;
+        <button class="button button--ghost" data-a="hide">Ver tienda</button></div></div>`;
   };
 
   const stockView = () => {
@@ -335,6 +337,7 @@
                     <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap">
                       ${statusBadge}
                       <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${paymentLabel}</span>
+                      ${(cl.advisorLabel || cl.advisorLine) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.15);color:var(--gold-1);border:1px solid var(--gold-2)">Atendido: ${esc(cl.advisorLabel || `Línea ${cl.advisorLine}`)}</span>` : ''}
                       <button class="button button--ghost admin__sm admin__danger" data-a="fin-del" data-id="${esc(s.id)}" title="Eliminar este registro">Eliminar</button>
                     </div>
                   </div>
@@ -409,7 +412,42 @@
   const settings = () => `<form class="admin__form" data-set autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <input type="text" style="display:none" aria-hidden="true" tabindex="-1">
     <input type="password" style="display:none" aria-hidden="true" tabindex="-1">
-    <div class="admin__field"><label for="s-w">WhatsApp de pedidos (con indicativo, solo números)</label><input id="s-w" name="fynx_wa_val" type="tel" inputmode="numeric" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${esc(db.cfg.wa)}"></div>
+
+    <div class="admin__card admin__field--full" style="border:1px solid var(--gold-2);background:rgba(212,175,55,0.06);padding:var(--space-4);border-radius:var(--radius)">
+      <h3 style="color:var(--gold-1);margin:0 0 6px;font-size:0.95rem;letter-spacing:0.12em;text-transform:uppercase">Gestión de 2 Líneas de WhatsApp</h3>
+      <p style="margin:0;font-size:0.85rem;color:var(--color-text-muted);line-height:1.5">
+        Si tu joyería cuenta con dos números donde los clientes escriben, configúralos aquí. Podrás balancear las compras 50/50 automáticamente o mostrarle al cliente un selector elegante con ambos asesores.
+      </p>
+    </div>
+
+    <div class="admin__field">
+      <label for="s-w">WhatsApp Línea 1 (Principal, con indicativo sin signos, ej: 573116240316)</label>
+      <input id="s-w" name="fynx_wa_val" type="tel" inputmode="numeric" required value="${esc(db.cfg.wa || '')}">
+    </div>
+    <div class="admin__field">
+      <label for="s-wl">Etiqueta / Nombre Línea 1</label>
+      <input id="s-wl" maxlength="40" placeholder="Ej: Asesoría y Ventas" value="${esc(db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas')}">
+    </div>
+
+    <div class="admin__field">
+      <label for="s-w2">WhatsApp Línea 2 (Opcional, con indicativo, ej: 573001234567)</label>
+      <input id="s-w2" name="fynx_wa2_val" type="tel" inputmode="numeric" placeholder="Vacío si solo usas 1 línea" value="${esc(db.cfg.wa2 || '')}">
+    </div>
+    <div class="admin__field">
+      <label for="s-w2l">Etiqueta / Nombre Línea 2</label>
+      <input id="s-w2l" maxlength="40" placeholder="Ej: Atención y Pedidos" value="${esc(db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos')}">
+    </div>
+
+    <div class="admin__field admin__field--full">
+      <label for="s-wm">Modo de Atención y Distribución de WhatsApp</label>
+      <select id="s-wm" style="padding:var(--space-2);background:var(--color-bg);border:1px solid var(--color-border);color:#fff">
+        <option value="balance" ${db.cfg.waMode === 'balance' ? 'selected' : ''}>Balanceo Automático 50/50 (Recomendado: reparte pedidos y clientes equitativamente para que a ambas líneas les escriban por igual)</option>
+        <option value="select" ${db.cfg.waMode === 'select' ? 'selected' : ''}>Selector para el Cliente (Muestra una ventana emergente elegante para que el cliente elija a cuál de las 2 líneas escribir)</option>
+        <option value="line1" ${db.cfg.waMode === 'line1' ? 'selected' : ''}>Usar exclusivamente Línea 1</option>
+        <option value="line2" ${db.cfg.waMode === 'line2' ? 'selected' : ''}>Usar exclusivamente Línea 2</option>
+      </select>
+    </div>
+
     <div class="admin__field"><label for="s-e">Correo para pedidos y mensajes (opcional)</label><input id="s-e" name="fynx_em_val" type="text" inputmode="email" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${esc(db.cfg.email)}"></div>
     <div class="admin__field"><label for="s-p">Nuevo PIN (4 a 8 números)</label><input id="s-p" name="fynx_np_val" type="text" class="admin__pin-field" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Vacío = no cambiar" value="" readonly onfocus="this.removeAttribute('readonly')"></div>
     <div class="admin__row-actions admin__field--full"><button class="button button--primary" type="submit">Guardar ajustes</button><button class="button button--ghost" type="button" data-a="ex">Descargar respaldo</button><label class="button button--ghost admin__file">Restaurar respaldo<input type="file" accept="application/json" data-im hidden></label></div>
@@ -418,15 +456,15 @@
 
   function draw() {
     if (!authed) {
-      root.innerHTML = `<div class="admin__login"><form class="admin__card admin__loginbox" data-login autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><img src="icon-192.png" alt="" width="64" height="64"><h2>Panel de administración</h2><p>Ingresa tu PIN para continuar</p><input id="adm-pin" name="fynx_adm_pin" type="text" class="admin__pin-field" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="PIN" placeholder="••••" readonly onfocus="this.removeAttribute('readonly')"><p class="admin__err" data-err role="alert"></p><button class="button button--primary" type="submit">Entrar</button><button class="button button--ghost" type="button" data-a="close">Volver a la tienda</button></form></div>`;
+      root.innerHTML = `<div class="admin__login"><form class="admin__card admin__loginbox" data-login autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><img src="icon-192.png" alt="" width="64" height="64"><h2>Panel de administración</h2><p>Ingresa tu PIN para continuar</p><input id="adm-pin" name="fynx_adm_pin" type="text" class="admin__pin-field" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="PIN" placeholder="••••" readonly onfocus="this.removeAttribute('readonly')"><p class="admin__err" data-err role="alert"></p><button class="button button--primary" type="submit">Entrar</button><button class="button button--ghost" type="button" data-a="hide">Volver a la tienda</button></form></div>`;
       root.append(toastEl);
       setTimeout(() => { const i = $('#adm-pin', root); if (i) { i.removeAttribute('readonly'); i.focus(); } }, 30);
       return;
     }
     const nav = ['home', 'p', 'st', 'fin', 'c', 's'].map((k) => `<button class="admin__link" type="button" data-a="go" data-k="${k}" ${sec === k ? 'aria-current="page"' : ''}>${svg(k)}${TITLES[k]}</button>`).join('');
-    root.innerHTML = `<aside class="admin__side" aria-label="Navegación del panel"><div class="admin__brand"><img src="icon-192.png" alt="" width="40" height="40"><div><b>Fynx Dorado</b><small>Panel</small></div></div><nav class="admin__nav">${nav}</nav><button class="admin__link" type="button" data-a="close">${svg('out')}Cerrar sesión</button></aside>
+    root.innerHTML = `<aside class="admin__side" aria-label="Navegación del panel"><div class="admin__brand"><img src="icon-192.png" alt="" width="40" height="40"><div><b>Fynx Dorado</b><small>Panel</small></div></div><nav class="admin__nav">${nav}</nav><button class="admin__link admin__link--out" type="button" data-a="logout">${svg('out')}Cerrar sesión</button></aside>
       <div class="admin__scrim" data-a="menu"></div>
-      <div class="admin__main"><header class="admin__top"><button class="admin__burger" type="button" data-a="menu" aria-label="Abrir menú"><span class="nav-toggle__bar" aria-hidden="true"></span></button><h2>${TITLES[sec]}</h2></header><div class="admin__content">${view()}</div></div>`;
+      <div class="admin__main"><header class="admin__top"><button class="admin__burger" type="button" data-a="menu" aria-label="Abrir menú"><span class="nav-toggle__bar" aria-hidden="true"></span></button><h2>${TITLES[sec]}</h2><button class="button button--ghost admin__sm" data-a="hide" style="margin-left:auto">Ver tienda</button></header><div class="admin__content">${view()}</div></div>`;
     root.append(toastEl);
     const pinInp = $('#s-p', root);
     if (pinInp) pinInp.value = '';
@@ -654,7 +692,8 @@
     const t = e.target.closest('[data-a]');
     if (!t) return;
     const a = t.dataset.a, id = t.dataset.id;
-    if (a === 'close') return close();
+    if (a === 'close' || a === 'hide') return hide();
+    if (a === 'logout') return logout();
     if (a === 'menu') return root.classList.toggle('is-menu');
     if (a === 'go') { sec = t.dataset.k; edit = null; pend = null; root.classList.remove('is-menu'); return draw(); }
     if (a === 'new') { sec = 'p'; edit = 'new'; pend = null; return draw(); }
@@ -743,7 +782,7 @@
     }
     if (a === 'ex') {
       const l = document.createElement('a');
-      l.href = URL.createObjectURL(new Blob([JSON.stringify({ cfg: { wa: db.cfg.wa, email: db.cfg.email }, cats: db.cats, prods: db.prods }, null, 2)], { type: 'application/json' }));
+      l.href = URL.createObjectURL(new Blob([JSON.stringify({ cfg: db.cfg, cats: db.cats, prods: db.prods }, null, 2)], { type: 'application/json' }));
       l.download = `fynx-respaldo-${new Date().toISOString().slice(0, 10)}.json`; l.click(); URL.revokeObjectURL(l.href);
     }
   }
@@ -758,17 +797,50 @@
       const n = $('#c-n', root).value.trim();
       if (n) { db.cats.push({ id: F.uid(), name: n.slice(0, 30) }); commit('Categoría creada'); }
     } else if (f.matches('[data-set]')) {
-      const wa = $('#s-w', root).value.replace(/\D/g, ''), em = $('#s-e', root).value.trim(), pin = $('#s-p', root).value.trim();
-      if (wa.length < 8 || wa.length > 15) return toast('WhatsApp inválido');
+      const wa = $('#s-w', root).value.replace(/\D/g, '');
+      const waLabel = $('#s-wl', root).value.trim();
+      const wa2 = $('#s-w2', root).value.replace(/\D/g, '');
+      const wa2Label = $('#s-w2l', root).value.trim();
+      const waMode = $('#s-wm', root).value;
+      const em = $('#s-e', root).value.trim(), pin = $('#s-p', root).value.trim();
+      if (wa.length < 8 || wa.length > 15) return toast('WhatsApp Línea 1 inválido');
+      if (wa2 && (wa2.length < 8 || wa2.length > 15)) return toast('WhatsApp Línea 2 inválido');
       if (em && !F.validEmail(em)) return toast('Correo inválido');
       if (pin && !/^\d{4,8}$/.test(pin)) return toast('PIN: de 4 a 8 números');
-      db.cfg.wa = wa; db.cfg.email = em;
+      db.cfg.wa = wa;
+      db.cfg.waLabel = waLabel || 'Línea 1 · Asesoría y Ventas';
+      db.cfg.wa2 = wa2;
+      db.cfg.wa2Label = wa2Label || 'Línea 2 · Atención y Pedidos';
+      db.cfg.waMode = waMode || 'balance';
+      db.cfg.email = em;
       if (pin) { db.cfg.pinHash = await H(pin); delete db.cfg.pin; defaultPin = false; }
       commit('Ajustes guardados');
     }
   }
 
-  /* ---- Apertura / cierre ---- */
+  /* ---- Apertura / cierre / persistencia ---- */
+  let badgeEl = null;
+  function updateAdminBadge() {
+    const isAuthed = localStorage.getItem(AUTH_KEY) === 'true';
+    if (!badgeEl && document.body) {
+      badgeEl = document.createElement('button');
+      badgeEl.className = 'fynx-admin-quick-badge';
+      badgeEl.setAttribute('type', 'button');
+      badgeEl.setAttribute('aria-label', 'Abrir panel de administración');
+      badgeEl.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:6px">
+          <polygon points="12 2 3 9 12 22 21 9"/><line x1="3" y1="9" x2="21" y2="9"/>
+        </svg>
+        <span>Panel Admin</span>
+      `;
+      badgeEl.addEventListener('click', () => open());
+      document.body.appendChild(badgeEl);
+    }
+    if (badgeEl) {
+      badgeEl.style.display = isAuthed ? 'inline-flex' : 'none';
+    }
+  }
+
   function build() {
     if (root) return;
     root = document.createElement('div');
@@ -797,29 +869,46 @@
   }
   function open() {
     build();
-    authed = localStorage.getItem(AUTH_KEY) === 'true'; // Mantiene la sesión abierta si ya ingresó
+    authed = localStorage.getItem(AUTH_KEY) === 'true'; // Mantiene la sesión abierta en PWA permanentemente
     sec = 'home'; edit = null; pend = null;
     root.classList.remove('is-menu'); root.hidden = false;
     document.documentElement.style.overflow = 'hidden';
     draw();
+    updateAdminBadge();
   }
-  function close() {
-    localStorage.removeItem(AUTH_KEY); // Cerrar sesión explícito
-    authed = false; clearTimeout(idleT);
+  function hide() {
+    // Minimiza o vuelve a la tienda SIN cerrar la sesión del administrador
     if (root) root.hidden = true;
     document.documentElement.style.overflow = '';
+    updateAdminBadge();
+  }
+  function logout() {
+    // Cierre voluntario de sesión: elimina el token de autenticación
+    localStorage.removeItem(AUTH_KEY);
+    authed = false;
+    clearTimeout(idleT);
+    if (root) root.hidden = true;
+    document.documentElement.style.overflow = '';
+    updateAdminBadge();
+    toast('Sesión de administrador cerrada');
   }
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !root || root.hidden) return;
     if (root.classList.contains('is-menu')) root.classList.remove('is-menu');
-    else if (!authed) close();
+    else if (!authed) hide();
   });
 
-  // Clics seguidos sobre el pie de página (2026) con delegación global en document
+  // Clics sobre el pie de página (2026):
+  // Si ya tiene la sesión abierta, 1 solo clic abre el panel de inmediato sin pedir PIN.
+  // Si no está autenticado, 4 clics abren la caja de login.
   let n = 0, t0;
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-secret]')) {
       e.preventDefault();
+      if (localStorage.getItem(AUTH_KEY) === 'true') {
+        open();
+        return;
+      }
       clearTimeout(t0);
       n++;
       if (n >= 4) {
@@ -838,8 +927,10 @@
     }
   };
   if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', updateAdminBadge);
     window.addEventListener('hashchange', hash);
     hash();
+    setTimeout(updateAdminBadge, 200);
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }

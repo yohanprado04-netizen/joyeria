@@ -5,7 +5,14 @@
   const money = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n || 0);
   const seed = () => ({
     version: 4,
-    cfg: { wa: '573116240316', email: '' },
+    cfg: {
+      wa: '573116240316',
+      waLabel: 'Línea 1 · Asesoría y Ventas',
+      wa2: '',
+      wa2Label: 'Línea 2 · Atención y Pedidos',
+      waMode: 'balance', // 'balance' (50/50), 'select' (menú cliente), 'line1', 'line2'
+      email: ''
+    },
     cats: [
       { id: 'a', name: 'Anillos' },
       { id: 'b', name: 'Collares' },
@@ -228,7 +235,14 @@
     } catch (e) {}
     try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {}
   }
-  db.cfg = Object.assign({ wa: '573116240316', email: '' }, db.cfg);
+  db.cfg = Object.assign({
+    wa: '573116240316',
+    waLabel: 'Línea 1 · Asesoría y Ventas',
+    wa2: '',
+    wa2Label: 'Línea 2 · Atención y Pedidos',
+    waMode: 'balance',
+    email: ''
+  }, db.cfg);
   if (!Array.isArray(db.sales)) db.sales = [];
   db.prods.forEach(p => { if (typeof p.stock === 'undefined') p.stock = 3; });
 
@@ -236,10 +250,103 @@
     try { localStorage.setItem(KEY, JSON.stringify(db)); return true; } catch (e) { return false; }
   };
 
+  const hasTwoLines = () => Boolean(db.cfg.wa2 && String(db.cfg.wa2).replace(/\D/g, '').length >= 8);
+
+  const getNextWa = (prefLine) => {
+    const two = hasTwoLines();
+    const l1 = { num: String(db.cfg.wa || '573116240316').replace(/\D/g, ''), label: db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas', line: 1 };
+    const l2 = two ? { num: String(db.cfg.wa2).replace(/\D/g, ''), label: db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos', line: 2 } : l1;
+
+    if (prefLine === 2 && two) return l2;
+    if (prefLine === 1 || !two) return l1;
+
+    const mode = db.cfg.waMode || 'balance';
+    if (mode === 'line2' && two) return l2;
+    if (mode === 'line1' || !two) return l1;
+
+    // Balanceo inteligente 50/50: alternar turno round-robin
+    try {
+      const turn = localStorage.getItem('fynx_wa_turn') || '1';
+      const nextTurn = turn === '1' ? '2' : '1';
+      localStorage.setItem('fynx_wa_turn', nextTurn);
+      return turn === '1' ? l1 : l2;
+    } catch (e) {
+      return l1;
+    }
+  };
+
   window.FYNX = {
     db, esc, money, save,
     uid: () => Math.random().toString(36).slice(2, 9),
-    waUrl: (m) => `https://wa.me/${String(db.cfg.wa).replace(/\D/g, '')}?text=${encodeURIComponent(m)}`,
+    hasTwoLines,
+    getNextWa,
+    waUrl: (m, prefLine) => {
+      const target = getNextWa(prefLine);
+      return `https://wa.me/${target.num}?text=${encodeURIComponent(m)}`;
+    },
+    openWaAdvisorModal: (msg) => {
+      let modalOverlay = document.getElementById('waAdvisorModal');
+      if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'waAdvisorModal';
+        modalOverlay.className = 'wa-modal-overlay';
+        modalOverlay.setAttribute('role', 'dialog');
+        modalOverlay.setAttribute('aria-modal', 'true');
+        document.body.appendChild(modalOverlay);
+      }
+
+      const two = hasTwoLines();
+      const l1 = {
+        num: String(db.cfg.wa || '573116240316').replace(/\D/g, ''),
+        label: db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas'
+      };
+      const l2 = {
+        num: String(db.cfg.wa2 || '').replace(/\D/g, ''),
+        label: db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos'
+      };
+      const textMsg = encodeURIComponent(msg || 'Hola Joyería Fynx Dorado, deseo asesoría personalizada.');
+
+      modalOverlay.innerHTML = `
+        <div class="wa-modal">
+          <button type="button" class="wa-modal__close" aria-label="Cerrar modal">&times;</button>
+          <h3 class="wa-modal__title">Atención Personalizada</h3>
+          <p class="wa-modal__desc">Elige con cuál de nuestras líneas de atención deseas comunicarte vía WhatsApp:</p>
+          <div class="wa-modal__options">
+            <a class="wa-modal__btn" href="https://wa.me/${l1.num}?text=${textMsg}" target="_blank" rel="noopener">
+              <div class="wa-modal__btn-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.16 8.16 0 0 1 2.4 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.98-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.44.54.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
+              </div>
+              <div class="wa-modal__btn-info">
+                <b>${esc(l1.label)}</b>
+                <small>+${l1.num}</small>
+              </div>
+            </a>
+
+            ${two ? `
+              <a class="wa-modal__btn" href="https://wa.me/${l2.num}?text=${textMsg}" target="_blank" rel="noopener">
+                <div class="wa-modal__btn-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.16 8.16 0 0 1 2.4 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.98-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.32-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.44.54.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
+                </div>
+                <div class="wa-modal__btn-info">
+                  <b>${esc(l2.label)}</b>
+                  <small>+${l2.num}</small>
+                </div>
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      modalOverlay.classList.add('is-active');
+
+      const closeHandler = (e) => {
+        if (e.target.closest('.wa-modal__close') || e.target === modalOverlay || e.target.closest('.wa-modal__btn')) {
+          modalOverlay.classList.remove('is-active');
+          modalOverlay.removeEventListener('click', closeHandler);
+        }
+      };
+      modalOverlay.addEventListener('click', closeHandler);
+    },
     validEmail: (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e || ''),
     catName: (id) => (db.cats.find((c) => c.id == id) || {}).name || '',
     
@@ -266,7 +373,9 @@
           name: clientData.name || 'Cliente WhatsApp',
           phone: clientData.phone || '',
           address: clientData.address || '',
-          payment: clientData.payment || 'Transferencia'
+          payment: clientData.payment || 'Transferencia',
+          advisorLine: clientData.advisorLine || 1,
+          advisorLabel: clientData.advisorLabel || ''
         }
       };
       db.sales.unshift(order);
