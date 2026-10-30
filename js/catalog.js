@@ -16,8 +16,11 @@
       const stock = Number(p.stock) || 0;
       const hasStock = stock > 0;
       const imgSrc = p.img || 'logo.jpg';
+      const wPrice = F.getWholesalePrice ? F.getWholesalePrice(p) : Math.round((Number(p.price) || 0) * 0.75);
+      const minQty = F.getWholesaleMinQty ? F.getWholesaleMinQty() : 3;
+
       return `
-      <li class="product-card ${hasStock ? '' : 'product-card--out'}" data-category="${esc(p.cat)}" data-product data-product-id="${esc(p.id)}" data-product-name="${esc(p.name)}" data-product-price="${Number(p.price) || 0}" data-product-image="${esc(imgSrc)}" data-product-sizes="${esc(p.sizes || '')}" data-product-stock="${stock}">
+      <li class="product-card ${hasStock ? '' : 'product-card--out'}" data-category="${esc(p.cat)}" data-product data-product-id="${esc(p.id)}" data-product-name="${esc(p.name)}" data-product-price="${Number(p.price) || 0}" data-product-wholesale="${wPrice}" data-product-image="${esc(imgSrc)}" data-product-sizes="${esc(p.sizes || '')}" data-product-stock="${stock}">
         <div class="product-card__media" data-zoom-pid="${esc(p.id)}" role="button" tabindex="0" title="Toca para ampliar y detallar la joya">
           <img class="product-card__image" src="${esc(imgSrc)}" alt="${esc(p.name)}" loading="lazy" decoding="async" width="400" height="500" onerror="this.onerror=null;this.src='logo.jpg'">
           <div class="product-card__zoom-hint" aria-hidden="true">
@@ -30,12 +33,22 @@
           <p class="product-card__category">${esc(catName(p.cat))}</p>
           <h3 class="product-card__name">${esc(p.name)}</h3>
           <p class="product-card__detail">${esc((p.desc || '').slice(0, 75))}${p.sizes ? ` · <span class="product-card__sizes">${p.sizes.split(',').length} tallas</span>` : ''}</p>
-          <p class="product-card__price">
-            <data value="${Number(p.price) || 0}">${money(p.price)}</data>
+          
+          <div class="product-card__prices">
+            <div class="product-card__price-row">
+              <span class="product-card__price-label">Detal:</span>
+              <span class="product-card__price-val">${money(p.price)}</span>
+            </div>
+            <div class="product-card__price-row product-card__price-row--wholesale">
+              <span class="product-card__price-label">Mayorista:</span>
+              <span class="product-card__price-val product-card__price-val--gold">${money(wPrice)}</span>
+              <small class="product-card__price-min">(${minQty}+ unds)</small>
+            </div>
             <span style="display:block;font-size:0.75rem;margin-top:2px;color:${hasStock ? (stock <= 2 ? 'var(--gold-1)' : 'var(--color-text-muted)') : '#ff9a9a'}">
               ${hasStock ? (stock === 1 ? 'Última pieza disponible' : `${stock} disponibles`) : 'Agotado'}
             </span>
-          </p>
+          </div>
+
           <button type="button" class="button button--primary product-card__cta" ${hasStock ? 'data-add-to-cart' : 'disabled aria-disabled="true"'}>
             ${hasStock ? 'Agregar al carrito' : 'Agotado'}
           </button>

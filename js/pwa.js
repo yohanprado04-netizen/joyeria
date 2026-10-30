@@ -7,10 +7,31 @@
   };
 
   const isStandalone = () => {
-    return ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+    return ('standalone' in window.navigator && window.navigator.standalone) || 
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      window.matchMedia('(display-mode: minimal-ui)').matches;
+  };
+
+  const hideInstallButtons = () => {
+    document.querySelectorAll('[data-pwa-install]').forEach((btn) => {
+      btn.style.display = 'none';
+      btn.setAttribute('hidden', '');
+    });
   };
 
   function init() {
+    // Si la app se ejecuta desde la pantalla de inicio o ya fue instalada previamente
+    if (isStandalone() || localStorage.getItem('fynx_pwa_installed') === 'true') {
+      hideInstallButtons();
+    }
+
+    try {
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+        if (e.matches) hideInstallButtons();
+      });
+    } catch (_) {}
+
     const modal = document.querySelector('[data-ios-modal]');
     const openIosModal = () => {
       if (modal) {
@@ -53,10 +74,10 @@
 
     window.addEventListener('appinstalled', () => {
       deferredPrompt = null;
-      document.querySelectorAll('[data-pwa-install]').forEach((btn) => {
-        btn.textContent = 'App Instalada';
-        btn.disabled = true;
-      });
+      try {
+        localStorage.setItem('fynx_pwa_installed', 'true');
+      } catch (_) {}
+      hideInstallButtons();
     });
 
     // Clic en los botones "Descargar App" / "Instalar App"

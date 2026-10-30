@@ -141,3 +141,11 @@ button:disabled {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
 }
+
+/* Ocultar botón o modales de instalación si ya está en pantalla de inicio (Standalone PWA) */
+@media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  [data-pwa-install],
+  .ios-install-modal {
+    display: none !important;
+  }
+}

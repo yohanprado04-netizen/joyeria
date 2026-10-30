@@ -81,7 +81,15 @@
       sizeModalImg.alt = product.name;
     }
     if (sizeModalTitle) sizeModalTitle.textContent = product.name;
-    if (sizeModalPrice) sizeModalPrice.textContent = formatCOP(product.price);
+    if (sizeModalPrice) {
+      const wPrice = product.wholesalePrice || (window.FYNX && FYNX.getWholesalePrice ? FYNX.getWholesalePrice(product) : Math.round(product.price * 0.75));
+      sizeModalPrice.innerHTML = `
+        <span style="display:inline-block;margin-right:8px">Detal: <b>${formatCOP(product.price)}</b></span>
+        <span style="display:inline-block;color:var(--gold-1);background:rgba(212,175,55,0.1);padding:2px 6px;border-radius:var(--radius);border:1px dashed var(--gold-2);font-size:0.85em">
+          Mayorista: <b>${formatCOP(wPrice)}</b>
+        </span>
+      `;
+    }
 
     if (sizeOptionsContainer) {
       sizeOptionsContainer.innerHTML = availableSizes.map(size => `
@@ -141,6 +149,7 @@
           name: currentPendingProduct.name,
           size: selectedSize,
           price: currentPendingProduct.price,
+          wholesalePrice: currentPendingProduct.wholesalePrice || (window.FYNX && FYNX.getWholesalePrice ? FYNX.getWholesalePrice(currentPendingProduct) : currentPendingProduct.price),
           image: currentPendingProduct.image,
           quantity: 1
         });
@@ -161,13 +170,34 @@
     }).format(num);
   };
 
+  // Helper para determinar el precio unitario vigente (Mayorista o Detal)
+  const getItemPrice = (item, isWholesaleActive) => {
+    if (isWholesaleActive) {
+      if (item.wholesalePrice && Number(item.wholesalePrice) > 0) return Number(item.wholesalePrice);
+      if (window.FYNX && FYNX.getWholesalePrice) return FYNX.getWholesalePrice(item);
+      return Math.round((Number(item.price) || 0) * 0.75);
+    }
+    return Number(item.price) || 0;
+  };
+
   // Renderizar carrito
   const renderCart = () => {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCountBadges.forEach(b => b.textContent = totalItems);
 
-    const totalMoney = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    if (cartTotalAmount) cartTotalAmount.textContent = formatCOP(totalMoney);
+    const minQty = (window.FYNX && FYNX.getWholesaleMinQty) ? FYNX.getWholesaleMinQty() : 3;
+    const isWholesaleActive = totalItems >= minQty;
+
+    const totalMoney = cart.reduce((sum, item) => sum + (getItemPrice(item, isWholesaleActive) * item.quantity), 0);
+    const retailTotal = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.quantity), 0);
+    const totalSavings = isWholesaleActive ? Math.max(0, retailTotal - totalMoney) : 0;
+
+    if (cartTotalAmount) {
+      cartTotalAmount.innerHTML = `
+        ${formatCOP(totalMoney)}
+        ${isWholesaleActive && totalSavings > 0 ? `<small style="display:block;font-size:0.75rem;color:var(--gold-1);font-weight:var(--fw-medium);margin-top:2px">¡Ahorraste ${formatCOP(totalSavings)} COP!</small>` : ''}
+      `;
+    }
 
     if (!cartItemsContainer) return;
 
@@ -185,7 +215,32 @@
 
     if (checkoutForm) checkoutForm.style.display = 'flex';
 
-    cartItemsContainer.innerHTML = cart.map(item => `
+    // Banner de estado Mayorista (activo o en progreso)
+    const wholesaleBannerHtml = isWholesaleActive ? `
+      <div class="cart-wholesale-banner cart-wholesale-banner--active">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <strong style="letter-spacing:0.04em;text-transform:uppercase;font-size:0.8rem">¡Precios Mayoristas Aplicados!</strong>
+        </div>
+        <div style="font-size:0.75rem;margin-top:3px;color:rgba(255,255,255,0.9)">
+          Estás ahorrando <b>${formatCOP(totalSavings)} COP</b> en este pedido por volumen (${totalItems} piezas).
+        </div>
+      </div>
+    ` : `
+      <div class="cart-wholesale-banner cart-wholesale-banner--progress">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style="font-size:0.8rem">Llevas <b>${totalItems}</b> de <b>${minQty}</b> joyas para Precio Mayorista</span>
+        </div>
+        <div style="font-size:0.75rem;margin-top:3px;color:var(--color-text-muted)">
+          Agrega <b>${minQty - totalItems}</b> joya${(minQty - totalItems) > 1 ? 's' : ''} más para activar precios al por mayor.
+        </div>
+      </div>
+    `;
+
+    cartItemsContainer.innerHTML = wholesaleBannerHtml + cart.map(item => {
+      const uPrice = getItemPrice(item, isWholesaleActive);
+      return `
       <article class="cart-item" data-cart-key="${esc(item.cartKey)}">
         <img class="cart-item__img" src="${esc(item.image)}" alt="${esc(item.name)}">
         <div class="cart-item__info">
@@ -193,7 +248,10 @@
           <span style="font-size:0.75rem; color:var(--color-text-muted); font-weight:var(--fw-medium); text-transform:uppercase;">
             Talla: <strong>${esc(item.size)}</strong>
           </span>
-          <span class="cart-item__price">${formatCOP(item.price)}</span>
+          <span class="cart-item__price">
+            ${formatCOP(uPrice)}
+            ${isWholesaleActive ? `<small style="display:inline-block;margin-left:4px;font-size:0.68rem;color:var(--gold-1);letter-spacing:0.04em;font-weight:var(--fw-bold)">(MAYORISTA)</small>` : ''}
+          </span>
           <div class="cart-item__qty-controls">
             <button type="button" class="cart-item__qty-btn" data-qty-change="-1" aria-label="Disminuir">−</button>
             <span class="cart-item__qty-val">${item.quantity}</span>
@@ -202,19 +260,21 @@
         </div>
         <button type="button" class="cart-item__remove" data-cart-remove aria-label="Eliminar ${esc(item.name)}">Eliminar</button>
       </article>
-    `).join('');
+      `;
+    }).join('');
 
     // Prellenar campos ocultos con resumen estructurado para FormSubmit
     if (checkoutDetailsInput) {
-      const itemsList = cart.map((i, idx) => 
-        `[${idx + 1}] ${i.name} (Talla: ${i.size}) | Cantidad: ${i.quantity} | Unitario: ${formatCOP(i.price)} | Subtotal: ${formatCOP(i.price * i.quantity)}`
-      ).join('\n');
-      checkoutDetailsInput.value = itemsList;
+      const itemsList = cart.map((i, idx) => {
+        const uPrice = getItemPrice(i, isWholesaleActive);
+        return `[${idx + 1}] ${i.name} (Talla: ${i.size}) | Cantidad: ${i.quantity} | Unitario: ${formatCOP(uPrice)} ${isWholesaleActive ? '(Mayorista)' : ''} | Subtotal: ${formatCOP(uPrice * i.quantity)}`;
+      }).join('\n');
+      checkoutDetailsInput.value = (isWholesaleActive ? `[TIPO DE PEDIDO: MAYORISTA (Ahorro: ${formatCOP(totalSavings)})]\n` : `[TIPO DE PEDIDO: DETAL]\n`) + itemsList;
     }
 
     const orderTotalInput = document.querySelector('[data-cart-order-total]');
     if (orderTotalInput) {
-      orderTotalInput.value = `${formatCOP(totalMoney)} COP`;
+      orderTotalInput.value = `${formatCOP(totalMoney)} COP ${isWholesaleActive ? '(Tarifa Mayorista)' : ''}`;
     }
   };
 
@@ -256,6 +316,7 @@
       id: card.dataset.productId,
       name: card.dataset.productName,
       price: parseInt(card.dataset.productPrice, 10) || 0,
+      wholesalePrice: parseInt(card.dataset.productWholesale, 10) || (window.FYNX && FYNX.getWholesalePrice ? FYNX.getWholesalePrice({ price: card.dataset.productPrice }) : 0),
       image: card.dataset.productImage
     };
     const prodData = window.FYNX && FYNX.db.prods.find(p => p.id == product.id);
@@ -281,17 +342,37 @@
       e.preventDefault();
       if (!cart.length) return;
       const fd = new FormData(checkoutForm);
-      const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-      const lines = cart.map((i, n) => `${n + 1}. *${i.name}* (Talla: ${i.size}) x${i.quantity} — ${formatCOP(i.price * i.quantity)}`).join('\n');
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const minQty = (window.FYNX && FYNX.getWholesaleMinQty) ? FYNX.getWholesaleMinQty() : 3;
+      const isWholesaleActive = totalItems >= minQty;
+
+      const total = cart.reduce((sum, i) => sum + (getItemPrice(i, isWholesaleActive) * i.quantity), 0);
+      const retailTotal = cart.reduce((sum, i) => sum + ((Number(i.price) || 0) * i.quantity), 0);
+      const totalSavings = isWholesaleActive ? Math.max(0, retailTotal - total) : 0;
+
+      const lines = cart.map((i, n) => {
+        const uPrice = getItemPrice(i, isWholesaleActive);
+        return `${n + 1}. *${i.name}* (Talla: ${i.size}) x${i.quantity} — ${formatCOP(uPrice * i.quantity)}${isWholesaleActive ? ' _(Mayorista)_' : ''}`;
+      }).join('\n');
+
+      const tipoPedido = isWholesaleActive 
+        ? `*TIPO DE COMPRA:* PEDIDO MAYORISTA (${totalItems} piezas)` 
+        : `*TIPO DE COMPRA:* VENTA AL DETAL`;
+      const ahorroTexto = (isWholesaleActive && totalSavings > 0) 
+        ? `\n*Ahorro Mayorista:* ${formatCOP(totalSavings)} COP` 
+        : '';
+
       const cliente = `*Nombre:* ${fd.get('Nombre del Cliente')}
 *Teléfono:* ${fd.get('Telefono de Contacto')}
 *Dirección:* ${fd.get('Direccion de Envio')}
 *Pago:* ${fd.get('Metodo de Pago')}`;
+
       if (FYNX.validEmail(FYNX.db.cfg.email)) {
         fetch('https://formsubmit.co/ajax/' + FYNX.db.cfg.email, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ _subject: 'Nuevo pedido · Fynx Dorado', _captcha: 'false', Pedido: lines, Total: formatCOP(total), Cliente: cliente })
+          body: JSON.stringify({ _subject: `Nuevo pedido · Fynx Dorado ${isWholesaleActive ? '(Mayorista)' : ''}`, _captcha: 'false', Pedido: lines, Total: formatCOP(total), Cliente: cliente })
         }).catch(() => {});
       }
       // Selección de línea elegida en el carrito (Línea 1 o Línea 2 configuradas en Ajustes)
@@ -312,30 +393,38 @@
       // Envía notificación al celular del administrador para que confirme la compra.
       if (window.FYNX && FYNX.registerPendingOrder) {
         FYNX.registerPendingOrder(
-          cart.map(i => ({
-            id: i.id,
-            name: i.name,
-            size: i.size,
-            qty: i.quantity,
-            price: i.price,
-            subtotal: i.price * i.quantity
-          })),
+          cart.map(i => {
+            const uPrice = getItemPrice(i, isWholesaleActive);
+            return {
+              id: i.id,
+              name: i.name,
+              size: i.size,
+              qty: i.quantity,
+              price: uPrice,
+              subtotal: uPrice * i.quantity,
+              isWholesale: isWholesaleActive
+            };
+          }),
           {
             name: fd.get('Nombre del Cliente') || 'Cliente WhatsApp',
             phone: fd.get('Telefono de Contacto') || '',
             address: fd.get('Direccion de Envio') || '',
             payment: fd.get('Metodo de Pago') || 'Transferencia',
             advisorLine: selectedLine,
-            advisorLabel: targetLabel
+            advisorLabel: targetLabel,
+            isWholesale: isWholesaleActive,
+            savings: totalSavings
           }
         );
       }
 
       const waMsg = `Hola Joyería Fynx Dorado, quiero hacer este pedido:
 
+${tipoPedido}${ahorroTexto}
+
 ${lines}
 
-*Total:* ${formatCOP(total)}
+*Total a Pagar:* ${formatCOP(total)}
 
 ${cliente}`;
 

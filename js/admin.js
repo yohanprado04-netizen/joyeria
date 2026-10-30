@@ -128,22 +128,27 @@
               return `
                 <article class="admin__sale-card" style="border:1px solid ${isPending ? 'var(--gold-2)' : 'var(--color-border)'}">
                   <div class="admin__sale-meta">
-                    <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:6px;flex-wrap:wrap">
-                      <b style="font-size:1.15rem;color:var(--gold-1);letter-spacing:0.02em;white-space:nowrap">${money(s.total)}</b>
-                      <small style="color:var(--color-text-muted)">${new Date(s.date).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}</small>
-                      ${statusBadge}
-                      <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${pago}</span>
-                      ${(s.client && (s.client.advisorLabel || s.client.advisorLine)) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.15);color:var(--gold-1);border:1px solid var(--gold-2)">${esc(s.client.advisorLabel || `Línea ${s.client.advisorLine}`)}</span>` : ''}
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);margin-bottom:8px;flex-wrap:wrap">
+                      <div style="display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:wrap">
+                        <b style="font-size:1.15rem;color:var(--gold-1);letter-spacing:0.02em;white-space:nowrap">${money(s.total)}</b>
+                        <small style="color:var(--color-text-muted)">${new Date(s.date).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}</small>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                        ${statusBadge}
+                        <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${pago}</span>
+                        ${(s.client && (s.client.advisorLabel || s.client.advisorLine)) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.15);color:var(--gold-1);border:1px solid var(--gold-2)">${esc(s.client.advisorLabel || `Línea ${s.client.advisorLine}`)}</span>` : ''}
+                        ${(s.client && s.client.isWholesale) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.22);color:var(--gold-1);border:1px solid var(--gold-2);font-weight:bold">MAYORISTA</span>` : `<span class="admin__badge" style="background:rgba(255,255,255,0.06);color:var(--color-text-muted);border:1px solid var(--color-border)">DETAL</span>`}
+                      </div>
                     </div>
-                    <div style="font-size:0.875rem;color:var(--color-text);margin-bottom:3px">
+                    <div style="font-size:0.875rem;color:var(--color-text);margin-bottom:4px">
                       <b>${esc((s.client && s.client.name) || 'Cliente WhatsApp')}</b>
                       ${(s.client && s.client.phone) ? `· <small style="color:var(--color-text-muted)">${esc(s.client.phone)}</small>` : ''}
                     </div>
-                    <div style="font-size:0.8125rem;color:var(--color-text-muted)">
+                    <div style="font-size:0.8125rem;color:var(--color-text-muted);line-height:1.4">
                       ${(s.items || []).map((it) => `${esc(it.name)} ${it.size ? `(${esc(it.size)})` : ''} × <b>${it.qty || 1}</b>`).join(' · ')}
                     </div>
                   </div>
-                  ${isPending ? `<div class="admin__sale-actions"><button class="button button--primary admin__sm" data-a="order-confirm" data-id="${esc(s.id)}" style="background:var(--gold);color:#000;font-weight:var(--fw-bold);white-space:nowrap">Confirmar compra</button></div>` : ''}
+                  ${isPending ? `<div class="admin__sale-actions"><button class="button button--primary admin__sm" data-a="order-confirm" data-id="${esc(s.id)}" style="background:var(--gold);color:#000;font-weight:var(--fw-bold);white-space:nowrap;margin-top:var(--space-2)">Confirmar compra</button></div>` : ''}
                 </article>
               `;
             }).join('')}
@@ -338,6 +343,7 @@
                       ${statusBadge}
                       <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${paymentLabel}</span>
                       ${(cl.advisorLabel || cl.advisorLine) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.15);color:var(--gold-1);border:1px solid var(--gold-2)">Atendido: ${esc(cl.advisorLabel || `Línea ${cl.advisorLine}`)}</span>` : ''}
+                      ${(cl.isWholesale) ? `<span class="admin__badge" style="background:rgba(212,175,55,0.22);color:var(--gold-1);border:1px solid var(--gold-2);font-weight:bold">MAYORISTA</span>` : `<span class="admin__badge" style="background:rgba(255,255,255,0.06);color:var(--color-text-muted);border:1px solid var(--color-border)">DETAL</span>`}
                       <button class="button button--ghost admin__sm admin__danger" data-a="fin-del" data-id="${esc(s.id)}" title="Eliminar este registro">Eliminar</button>
                     </div>
                   </div>
@@ -388,14 +394,15 @@
   const list = () => `<div class="admin__bar"><p>${db.prods.length} joyas registradas</p><div style="display:flex;gap:var(--space-2)"><button class="button button--ghost admin__sm" data-a="load-seed">Cargar datos de prueba</button><button class="button button--primary admin__sm" data-a="new">Nueva joya</button></div></div>
     <div class="admin__list">${db.prods.map((p) => `<article class="admin__item">
       <div class="admin__thumb" ${p.img ? `data-zoom-img="${esc(p.img)}" data-zoom-title="${esc(p.name)}" data-zoom-desc="${esc(p.desc || '')}" data-zoom-price="${Number(p.price) || 0}" style="cursor:pointer" title="Toca para ampliar y detallar foto"` : ''}>${p.img ? `<img src="${esc(p.img)}" alt="">` : svg('p')}</div>
-      <div class="admin__meta"><b>${esc(p.name)}</b><small>${esc(F.catName(p.cat))} · ${money(p.price)} · Stock: <b>${p.stock ?? 0}</b>${p.on ? '' : ' · Oculta'}</small></div>
+      <div class="admin__meta"><b>${esc(p.name)}</b><small>${esc(F.catName(p.cat))} · Detal: <b>${money(p.price)}</b> · Mayorista: <b style="color:var(--gold-1)">${money(p.wholesalePrice || (F.getWholesalePrice ? F.getWholesalePrice(p) : 0))}</b> · Stock: <b>${p.stock ?? 0}</b>${p.on ? '' : ' · Oculta'}</small></div>
       <div class="admin__acts"><button class="button button--ghost admin__sm" data-a="ep" data-id="${esc(p.id)}">Editar</button><button class="button button--ghost admin__sm admin__danger" data-a="dp" data-id="${esc(p.id)}">Eliminar</button></div>
     </article>`).join('') || '<div class="admin__card" style="text-align:center;padding:var(--space-6)"><p class="admin__empty" style="margin-bottom:var(--space-3)">Aún no hay joyas registradas en la tienda.</p><button class="button button--primary" data-a="load-seed">Cargar catálogo de muestra con fotos reales</button></div>'}</div>`;
   const form = () => {
     const e = db.prods.find((p) => p.id == edit) || {}, prev = pend || e.img;
     return `<form class="admin__form" data-prod autocomplete="off">
       <div class="admin__field"><label for="f-n">Nombre</label><input id="f-n" maxlength="80" required value="${esc(e.name)}"></div>
-      <div class="admin__field"><label for="f-p">Precio (COP)</label><input id="f-p" type="number" min="0" step="1000" required value="${esc(e.price ?? '')}"></div>
+      <div class="admin__field"><label for="f-p">Precio Detal (COP)</label><input id="f-p" type="number" min="0" step="1000" required value="${esc(e.price ?? '')}"></div>
+      <div class="admin__field"><label for="f-wp">Precio Mayorista (COP) <small style="color:var(--color-text-muted)">(Opcional)</small></label><input id="f-wp" type="number" min="0" step="1000" placeholder="Vacío = aplica % global" value="${esc(e.wholesalePrice ?? '')}"></div>
       <div class="admin__field"><label for="f-c">Categoría</label><select id="f-c">${db.cats.map((c) => `<option value="${esc(c.id)}" ${e.cat == c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
       <div class="admin__field"><label for="f-st">Stock disponible (unidades)</label><input id="f-st" type="number" min="0" required value="${esc(e.stock ?? 3)}"></div>
       <div class="admin__field"><label for="f-t">Etiqueta (opcional)</label><input id="f-t" maxlength="24" placeholder="Nuevo, Más vendido…" value="${esc(e.tag)}"></div>
@@ -414,6 +421,22 @@
     <input type="password" style="display:none" aria-hidden="true" tabindex="-1">
 
     <div class="admin__card admin__field--full" style="border:1px solid var(--gold-2);background:rgba(212,175,55,0.06);padding:var(--space-4);border-radius:var(--radius)">
+      <h3 style="color:var(--gold-1);margin:0 0 6px;font-size:0.95rem;letter-spacing:0.12em;text-transform:uppercase">Reglas de Venta Mayorista</h3>
+      <p style="margin:0;font-size:0.85rem;color:var(--color-text-muted);line-height:1.5">
+        Configura el mínimo de joyas en el carrito para que se aplique automáticamente el precio al por mayor en todo el pedido.
+      </p>
+    </div>
+
+    <div class="admin__field">
+      <label for="s-wm">Mínimo de joyas para activar Precio Mayorista</label>
+      <input id="s-wm" type="number" min="2" max="50" required value="${esc(db.cfg.wholesaleMinQty || 3)}">
+    </div>
+    <div class="admin__field">
+      <label for="s-wd">Descuento mayorista predeterminado (%) para joyas sin precio fijo</label>
+      <input id="s-wd" type="number" min="5" max="80" required value="${esc(db.cfg.wholesaleDiscountPct || 25)}">
+    </div>
+
+    <div class="admin__card admin__field--full" style="border:1px solid var(--gold-2);background:rgba(212,175,55,0.06);padding:var(--space-4);border-radius:var(--radius);margin-top:var(--space-2)">
       <h3 style="color:var(--gold-1);margin:0 0 6px;font-size:0.95rem;letter-spacing:0.12em;text-transform:uppercase">Configuración de los 2 Botones de WhatsApp</h3>
       <p style="margin:0;font-size:0.85rem;color:var(--color-text-muted);line-height:1.5">
         Configura los números de tus dos líneas de atención. Estos dos botones aparecerán directamente flotando en pantalla, en la sección de contacto y en el carrito de compras.
@@ -478,8 +501,11 @@
     const name = $('#f-n', root).value.trim(), cat = $('#f-c', root).value;
     if (!name || !cat) return toast('Falta nombre o categoría');
     const old = db.prods.find((p) => p.id == edit) || {};
+    const wpVal = $('#f-wp', root).value;
+    const wholesalePrice = wpVal ? Math.max(0, Math.round(+wpVal || 0)) : (old.wholesalePrice ?? 0);
     const o = {
       id: old.id || F.uid(), name, cat, price: Math.max(0, Math.round(+$('#f-p', root).value || 0)),
+      wholesalePrice,
       stock: Math.max(0, parseInt($('#f-st', root).value, 10) || 0),
       tag: $('#f-t', root).value.trim(), desc: $('#f-d', root).value.trim(),
       sizes: [...new Set($('#f-s', root).value.split(',').map((s) => s.trim()).filter(Boolean))].slice(0, 14).join(','),
@@ -822,6 +848,8 @@
       const waLabel = $('#s-wl', root).value.trim();
       const wa2 = $('#s-w2', root).value.replace(/\D/g, '');
       const wa2Label = $('#s-w2l', root).value.trim();
+      const wm = Math.max(2, parseInt($('#s-wm', root).value, 10) || 3);
+      const wd = Math.max(5, Math.min(80, parseInt($('#s-wd', root).value, 10) || 25));
       const em = $('#s-e', root).value.trim(), pin = $('#s-p', root).value.trim();
       if (wa.length < 8 || wa.length > 15) return toast('WhatsApp Línea 1 inválido');
       if (wa2 && (wa2.length < 8 || wa2.length > 15)) return toast('WhatsApp Línea 2 inválido');
@@ -831,6 +859,8 @@
       db.cfg.waLabel = waLabel || 'Línea 1 · Asesoría';
       db.cfg.wa2 = wa2;
       db.cfg.wa2Label = wa2Label || 'Línea 2 · Pedidos';
+      db.cfg.wholesaleMinQty = wm;
+      db.cfg.wholesaleDiscountPct = wd;
       db.cfg.email = em;
       if (pin) { db.cfg.pinHash = await H(pin); delete db.cfg.pin; defaultPin = false; }
       commit('Ajustes guardados');
