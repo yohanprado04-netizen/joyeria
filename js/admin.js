@@ -126,10 +126,10 @@
               const isCash = pago.toLowerCase().includes('efect') || pago.toLowerCase().includes('contra');
 
               return `
-                <article class="admin__item admin__item--sale" style="border:1px solid ${isPending ? 'var(--gold-2)' : 'var(--color-border)'}">
-                  <div class="admin__meta">
+                <article class="admin__sale-card" style="border:1px solid ${isPending ? 'var(--gold-2)' : 'var(--color-border)'}">
+                  <div class="admin__sale-meta">
                     <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:6px;flex-wrap:wrap">
-                      <b style="font-size:1.15rem;color:var(--gold-1);letter-spacing:0.02em">${money(s.total)}</b>
+                      <b style="font-size:1.15rem;color:var(--gold-1);letter-spacing:0.02em;white-space:nowrap">${money(s.total)}</b>
                       <small style="color:var(--color-text-muted)">${new Date(s.date).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}</small>
                       ${statusBadge}
                       <span class="admin__badge ${isCash ? 'admin__badge--ok' : 'admin__badge--warn'}">Pago: ${pago}</span>
@@ -143,7 +143,7 @@
                       ${(s.items || []).map((it) => `${esc(it.name)} ${it.size ? `(${esc(it.size)})` : ''} × <b>${it.qty || 1}</b>`).join(' · ')}
                     </div>
                   </div>
-                  ${isPending ? `<div class="admin__acts"><button class="button button--primary admin__sm" data-a="order-confirm" data-id="${esc(s.id)}" style="background:var(--gold);color:#000;font-weight:var(--fw-bold)">Confirmar compra</button></div>` : ''}
+                  ${isPending ? `<div class="admin__sale-actions"><button class="button button--primary admin__sm" data-a="order-confirm" data-id="${esc(s.id)}" style="background:var(--gold);color:#000;font-weight:var(--fw-bold);white-space:nowrap">Confirmar compra</button></div>` : ''}
                 </article>
               `;
             }).join('')}

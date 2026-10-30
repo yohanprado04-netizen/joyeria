@@ -121,6 +121,14 @@ h1, h2, h3 { font-weight: var(--fw-medium); line-height: 1.15; }
 }
 .button--ghost:hover { background: var(--color-text); color: var(--color-text-inverse); }
 
+.button:disabled,
+button:disabled {
+  opacity: 0.42 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  filter: grayscale(0.5);
+}
+
 /* Secciones provisionales: se borran cuando cada PBI se implemente */
 .section { padding-block: var(--space-12); }
 .section--placeholder {

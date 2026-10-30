@@ -1,57 +1,45 @@
-/* PBI-8 · Botones flotantes de WhatsApp (Línea 1 y Línea 2) */
-.whatsapp-floats {
+/* PBI-8 · Botón flotante oficial de WhatsApp */
+.whatsapp-float {
   position: fixed;
   right: max(var(--space-4), var(--safe-right));
   bottom: calc(var(--space-4) + var(--safe-bottom));
   z-index: var(--z-float);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-items: flex-end;
-}
-
-.whatsapp-float {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  height: 46px;
-  padding: 0 var(--space-4);
-  border-radius: 999px;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-full);
   background: var(--color-whatsapp);
   color: var(--color-text-inverse);
-  text-decoration: none;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   transition: background-color var(--transition), transform var(--transition);
   font-size: 0.8125rem;
   font-weight: var(--fw-medium);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-}
-
-.whatsapp-float--2 {
-  background: #128c7e;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  text-decoration: none;
 }
 
 .whatsapp-float:hover { background: var(--color-whatsapp-hover); }
-.whatsapp-float--2:hover { background: #0b6358; }
 .whatsapp-float:active { transform: scale(0.96); }
 
 .whatsapp-float__icon { width: 22px; height: 22px; flex-shrink: 0; }
 .whatsapp-float__label { display: inline; }
 
 /* Se oculta mientras el menú móvil está abierto o el aviso de cookies ocupa la parte inferior */
-.is-nav-open .whatsapp-floats,
-html:has(.cookie-banner:not([hidden])) .whatsapp-floats { visibility: hidden; }
+.is-nav-open .whatsapp-float,
+html:has(.cookie-banner:not([hidden])) .whatsapp-float { visibility: hidden; }
 
 @media (max-width: 480px) {
   .whatsapp-float {
-    height: 40px;
-    padding: 0 var(--space-3);
-    font-size: 0.72rem;
+    width: var(--tap-min);
+    min-height: var(--tap-min);
+    padding: 0;
+    border-radius: 50%;
   }
-  .whatsapp-float__icon { width: 18px; height: 18px; }
+  .whatsapp-float__label { display: none; }
 }
 
 /* Modal Selector de Asesor Multilínea */

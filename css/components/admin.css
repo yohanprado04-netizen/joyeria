@@ -32,27 +32,36 @@
 .admin__list { display: grid; gap: var(--space-3); }
 .admin__item { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); }
 .admin__item--cat { grid-template-columns: minmax(0, 1fr) auto; }
-.admin__item--sale {
-  display: flex !important;
+
+/* Tarjetas de ventas y pedidos independientes del grid de 3 columnas */
+.admin__sale-card {
+  display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
-  padding: var(--space-4) var(--space-5) !important;
-  background: var(--color-bg) !important;
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg);
   border-radius: var(--radius);
+  width: 100%;
+  box-sizing: border-box;
 }
-.admin__item--sale .admin__meta {
-  flex: 1 1 320px;
+.admin__sale-meta {
+  flex: 1 1 280px;
   min-width: 0;
 }
-.admin__item--sale .admin__meta b {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: clip !important;
-}
-.admin__item--sale .admin__acts {
+.admin__sale-actions {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+@media (max-width: 580px) {
+  .admin__sale-actions {
+    width: 100%;
+  }
+  .admin__sale-actions .button {
+    width: 100%;
+  }
 }
 .admin__thumb { display: grid; place-items: center; width: 56px; height: 56px; overflow: hidden; background: var(--color-bg); color: var(--gold-2); }
 .admin__thumb img { width: 100%; height: 100%; object-fit: cover; }
