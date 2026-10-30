@@ -169,29 +169,65 @@
         img: 'https://images.unsplash.com/photo-1629224316810-9d8805b95e76?w=800&auto=format&fit=crop&q=80',
         on: 1
       },
-      // Kits Mayoristas
+      // Kits y Lotes Mayoristas
       {
         id: 'm1',
-        name: 'Kit Emprendedor Oro 18K (10 Piezas)',
-        price: 2450000,
-        stock: 3,
+        name: 'Kit Emprendedor Fénix (12 Joyas Surtidas)',
+        price: 2890000,
+        stock: 4,
         cat: 'm',
-        tag: 'Mayorista',
+        tag: 'Más vendido',
         sizes: '',
-        desc: 'Surtido comercial exclusivo: 4 anillos surtidos, 3 pulseras y 3 collares en oro garantizado.',
+        desc: 'Pack mayorista de máxima rotación: 4 anillos surtidos, 3 collares, 3 pulseras y 2 aretes en oro 18K garantizado con estuches de lujo.',
         img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&auto=format&fit=crop&q=80',
         on: 1
       },
       {
         id: 'm2',
-        name: 'Lote Mayorista Solitarios (6 Unidades)',
-        price: 1980000,
+        name: 'Lote Mayorista Solitarios Corona (6 Unidades)',
+        price: 1950000,
+        stock: 3,
+        cat: 'm',
+        tag: 'Exclusivo',
+        sizes: '6,7,8,9',
+        desc: 'Docena media de anillos Solitario Corona Real con engaste alto artesanal y tallas comerciales surtidas.',
+        img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop&q=80',
+        on: 1
+      },
+      {
+        id: 'm3',
+        name: 'Kit Cadenas & Dijes Macizos (5 Conjuntos)',
+        price: 3450000,
         stock: 2,
         cat: 'm',
-        tag: 'Mayorista',
-        sizes: '6,7,8,9',
-        desc: 'Combo de 6 solitarios en oro 18K con engaste fino y estuches individuales de presentación.',
-        img: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop&q=80',
+        tag: 'Destacado',
+        sizes: '45 cm,50 cm,55 cm',
+        desc: 'Lote de 5 cadenas de tejido italiano reforzado y dijes clásicos en oro macizo. Presentación prémium para vitrina.',
+        img: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
+        on: 1
+      },
+      {
+        id: 'm4',
+        name: 'Docena Aretes & Candongas Fuego (12 Pares)',
+        price: 1680000,
+        stock: 5,
+        cat: 'm',
+        tag: 'Tendencia',
+        sizes: '',
+        desc: 'Surtido de 12 pares de candongas medianas y topos botón en oro 18K pulido espejo, broches de seguridad reforzados.',
+        img: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=800&auto=format&fit=crop&q=80',
+        on: 1
+      },
+      {
+        id: 'm5',
+        name: 'Pack Pulseras & Manillas Cubanas (6 Unidades)',
+        price: 2150000,
+        stock: 3,
+        cat: 'm',
+        tag: 'Nuevo',
+        sizes: '18 cm,19 cm,20 cm',
+        desc: 'Selección de 6 manillas y pulseras diamantadas con broche de caja, tejido tupido de alto impacto visual.',
+        img: 'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=800&auto=format&fit=crop&q=80',
         on: 1
       }
     ],
@@ -276,6 +312,13 @@
     catM.name = 'Mayorista';
   } else {
     db.cats.push({ id: 'm', name: 'Mayorista' });
+  }
+
+  // Cargar automáticamente los kits en la categoría Mayorista si no existen en el almacenamiento actual
+  if (!db.prods.some(p => p.cat === 'm')) {
+    const s = seed();
+    const mayoristaKits = s.prods.filter(p => p.cat === 'm');
+    db.prods.push(...mayoristaKits);
   }
 
   const save = () => {
