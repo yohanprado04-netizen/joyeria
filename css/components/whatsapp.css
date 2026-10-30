@@ -1,0 +1,48 @@
+/* PBI-8 · Botón flotante de WhatsApp (#11) */
+.whatsapp-float {
+  position: fixed;
+  right: max(var(--space-4), var(--safe-right));
+  bottom: calc(var(--space-4) + var(--safe-bottom));
+  z-index: var(--z-float);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--color-whatsapp);
+  color: var(--color-text-inverse);
+  text-decoration: none;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-black) 25%, transparent);
+  transition: background-color var(--transition), transform var(--transition);
+}
+
+.whatsapp-float:hover { background: var(--color-whatsapp-hover); }
+.whatsapp-float:active { transform: scale(0.96); }
+
+.whatsapp-float__icon { width: 28px; height: 28px; flex-shrink: 0; }
+
+/* En móvil solo el ícono; el nombre accesible viene de aria-label */
+.whatsapp-float__label { display: none; }
+
+/* Se oculta mientras el menú móvil está abierto o el aviso de cookies ocupa la parte inferior */
+.is-nav-open .whatsapp-float,
+html:has(.cookie-banner:not([hidden])) .whatsapp-float { visibility: hidden; }
+
+@media (min-width: 768px) {
+  .whatsapp-float {
+    right: var(--space-8);
+    bottom: var(--space-8);
+    width: auto;
+    padding-inline: var(--space-4) var(--space-6);
+  }
+
+  .whatsapp-float__label {
+    display: inline;
+    font-size: 0.8125rem;
+    font-weight: var(--fw-medium);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+}

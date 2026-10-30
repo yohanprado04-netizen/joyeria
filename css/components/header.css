@@ -1,0 +1,171 @@
+/* PBI-1 · Header con logo y menú (#4) */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  padding-top: var(--safe-top);
+  border-bottom: 1px solid var(--color-border);
+  transition: box-shadow var(--transition);
+}
+
+/* El desenfoque va en un pseudo-elemento: si estuviera en .site-header,
+   el menú móvil (position: fixed) quedaría atrapado dentro del header. */
+.site-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.site-header.is-scrolled {
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-text) 8%, transparent);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: var(--tap-min);
+}
+.brand__logo { height: 34px; width: auto; }
+
+/* Navegación (escritorio) */
+.site-nav__list {
+  display: flex;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  font-size: 0.8125rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  transition: color var(--transition);
+}
+
+.site-nav__link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: var(--tracking-wide); /* Compensa el espaciado de la última letra */
+  bottom: var(--space-1);
+  height: 2px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition);
+}
+
+.site-nav__link:hover,
+.site-nav__link[aria-current="true"] { color: var(--color-text); }
+
+.site-nav__link:hover::after,
+.site-nav__link[aria-current="true"]::after { transform: scaleX(1); }
+
+/* Botón hamburguesa: solo móvil y solo con JS activo */
+.nav-toggle { display: none; }
+
+@media (max-width: 767px) {
+  .brand__logo { height: 28px; }
+
+  .js .nav-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: var(--tap-min);
+    height: var(--tap-min);
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .nav-toggle__bar,
+  .nav-toggle__bar::before,
+  .nav-toggle__bar::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform var(--transition), background-color var(--transition);
+  }
+  .nav-toggle__bar { position: relative; }
+  .nav-toggle__bar::before,
+  .nav-toggle__bar::after { content: ""; position: absolute; left: 0; }
+  .nav-toggle__bar::before { top: -6px; }
+  .nav-toggle__bar::after { top: 6px; }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bar { background: transparent; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bar::before { transform: translateY(6px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bar::after { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Panel a pantalla completa bajo el header */
+  .js .site-nav {
+    position: fixed;
+    top: calc(var(--header-height) + var(--safe-top));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--color-bg);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  }
+
+  .js .site-nav.is-open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    /* Visible al instante al abrir, para poder mover el foco al primer enlace */
+    transition: opacity var(--transition), transform var(--transition), visibility 0s;
+  }
+
+  .js .site-nav__list {
+    flex-direction: column;
+    gap: 0;
+    padding: var(--space-4) max(var(--space-4), var(--safe-right)) calc(var(--space-8) + var(--safe-bottom)) max(var(--space-4), var(--safe-left));
+  }
+
+  .js .site-nav__list > li { border-bottom: 1px solid var(--color-border); }
+
+  .js .site-nav__link {
+    display: flex;
+    padding-block: var(--space-6);
+    font-size: 1.25rem;
+    color: var(--color-text);
+  }
+
+  .js .site-nav__link::after {
+    right: auto;
+    width: 32px;
+    bottom: var(--space-4);
+  }
+
+  /* Sin JS el menú se muestra en línea y se acomoda */
+  .no-js .site-nav__list { gap: var(--space-4); }
+  .no-js .site-nav__link { font-size: 0.6875rem; letter-spacing: 0.1em; }
+}

@@ -1,0 +1,229 @@
+/* Modal / Lightbox Dark Luxury para ampliar y detallar joyas en alta resolución */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 6, 6, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+  user-select: none;
+}
+.image-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+.image-lightbox[hidden] {
+  display: none;
+}
+
+.image-lightbox__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: calc(var(--space-4) + var(--safe-top)) var(--space-6) var(--space-3);
+  background: linear-gradient(180deg, rgba(6,6,6,0.95) 0%, rgba(6,6,6,0) 100%);
+}
+.image-lightbox__tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-1);
+  margin-bottom: 2px;
+}
+.image-lightbox__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  color: #fff;
+  font-weight: var(--fw-medium);
+}
+.image-lightbox__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.image-lightbox__btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: var(--fw-medium);
+  transition: all 0.2s ease;
+}
+.image-lightbox__btn:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--gold-2);
+  color: var(--gold-1);
+  transform: translateY(-1px);
+}
+.image-lightbox__btn--close {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--gold-2);
+  color: var(--gold-1);
+}
+.image-lightbox__btn--close:hover {
+  background: var(--gold);
+  color: #000;
+}
+
+.image-lightbox__viewport {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: var(--space-4);
+  touch-action: pan-x pan-y pinch-zoom;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-2) transparent;
+}
+.image-lightbox__canvas {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.24s cubic-bezier(0.2, 0, 0, 1);
+  transform-origin: center center;
+  cursor: default;
+}
+.image-lightbox__canvas.is-zoomed {
+  cursor: default;
+}
+.image-lightbox__img {
+  max-width: min(88vw, 750px);
+  max-height: min(72vh, 680px);
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(212, 175, 55, 0.2);
+  transition: box-shadow 0.25s ease;
+  pointer-events: auto;
+  cursor: zoom-in;
+}
+.image-lightbox__canvas.is-zoomed .image-lightbox__img {
+  max-width: none;
+  max-height: none;
+  width: 1400px;
+  height: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 0 1px var(--gold-2);
+  cursor: zoom-out;
+}
+
+.image-lightbox__hint {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 10, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.image-lightbox__canvas.is-zoomed + .image-lightbox__hint {
+  opacity: 0;
+}
+
+.image-lightbox__footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-6) calc(var(--space-4) + var(--safe-bottom));
+  background: linear-gradient(0deg, rgba(6,6,6,0.95) 0%, rgba(6,6,6,0) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.image-lightbox__info {
+  flex: 1;
+  min-width: 220px;
+}
+.image-lightbox__price {
+  margin: 0 0 2px;
+  font-size: 1.25rem;
+  font-weight: var(--fw-medium);
+  color: var(--gold-1);
+}
+.image-lightbox__desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  max-width: 600px;
+}
+.image-lightbox__actions {
+  flex-shrink: 0;
+}
+
+/* Indicador visual de zoom en las tarjetas de la tienda */
+.product-card__media {
+  cursor: pointer;
+  position: relative;
+}
+.product-card__zoom-hint {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(7, 7, 7, 0.82);
+  border: 1px solid var(--gold-2);
+  border-radius: 20px;
+  color: var(--gold-1);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: var(--fw-medium);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.product-card:hover .product-card__zoom-hint,
+.product-card__media:focus .product-card__zoom-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  .product-card__zoom-hint {
+    opacity: 0.85;
+    transform: none;
+  }
+  .image-lightbox__header {
+    padding-inline: var(--space-4);
+  }
+  .image-lightbox__footer {
+    padding-inline: var(--space-4);
+  }
+  .image-lightbox__title {
+    font-size: 1.1rem;
+  }
+  .image-lightbox__actions .button {
+    width: 100%;
+  }
+}

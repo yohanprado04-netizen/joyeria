@@ -1,0 +1,107 @@
+/* Ajustes del tema negro + oro sobre los componentes de Trexxo (se carga al final) */
+:root { color-scheme: dark; }
+.button--primary { background: var(--gold); color: var(--color-on-accent); }
+.button--primary:hover { background: var(--gold-1); color: var(--color-on-accent); }
+.button--ghost { border-color: var(--gold-2); color: var(--gold-1); }
+.button--ghost:hover { background: var(--gold-2); color: var(--color-on-accent); }
+.catalog__filter:hover, .size-btn:hover { border-color: var(--gold-2); background: transparent; }
+.catalog__filter[aria-pressed="true"], .size-btn.is-selected { background: var(--gold); border-color: transparent; color: var(--color-on-accent); }
+.hero__title-accent { background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero__media { border: 1px solid var(--color-border); }
+.brand { gap: var(--space-3); }
+.brand__logo { height: 38px; width: 38px; border-radius: 50%; }
+.brand__name { font-size: 0.95rem; font-weight: var(--fw-medium); letter-spacing: var(--tracking-brand); text-transform: uppercase; background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
+@media (max-width: 767px) { .brand__logo { height: 32px; width: 32px; } .brand__name { font-size: 0.78rem; letter-spacing: 0.3em; } }
+.product-card__ph { display: grid; place-items: center; width: 100%; height: 100%; color: var(--gold-2); }
+.catalog__empty { grid-column: 1 / -1; padding: var(--space-12) 0; text-align: center; color: var(--color-text-muted); }
+.site-footer__brand-name { font-size: 1.1rem; letter-spacing: var(--tracking-brand); text-transform: uppercase; }
+.site-footer__copyright[data-secret] { cursor: default; user-select: none; -webkit-user-select: none; }
+
+/* Modal explicativo de instalación en iPhone / PWA */
+.ios-install-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  overflow-y: auto;
+}
+.ios-install-modal.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+.ios-install-modal[hidden] {
+  display: none;
+}
+.ios-install-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 5, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.ios-install-modal__card {
+  position: relative;
+  z-index: 2;
+  background: #0d0d10;
+  border: 1px solid var(--gold-2);
+  border-radius: 8px;
+  max-width: 380px;
+  width: 100%;
+  padding: var(--space-5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.15);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+.ios-install-modal__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.ios-install-modal__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.ios-install-modal__step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+}
+.ios-install-modal__num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #000;
+  font-weight: var(--fw-bold);
+  font-size: 0.8rem;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ios-install-modal__text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--color-text);
+  flex: 1;
+}
+.ios-install-modal__icon {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 6px;
+  color: var(--gold-1);
+}

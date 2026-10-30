@@ -1,0 +1,201 @@
+/* PBI-4 · Formulario de contacto (#7) */
+.contact {
+  padding-block: var(--space-12);
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .contact {
+    padding-block: var(--space-16);
+  }
+}
+
+.contact__header {
+  margin-bottom: var(--space-8);
+  max-width: 640px;
+}
+
+.contact__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.contact__title {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.contact__lead {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+.contact__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 900px) {
+  .contact__layout {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--space-12);
+    align-items: start;
+  }
+}
+
+/* Formulario */
+.contact__form {
+  background: var(--color-surface);
+  padding: var(--space-6);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+@media (min-width: 768px) {
+  .contact__form {
+    padding: var(--space-8);
+  }
+}
+
+.contact__form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+@media (min-width: 600px) {
+  .contact__form-grid--two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.contact__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contact__label {
+  font-size: 0.8125rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.contact__input,
+.contact__textarea,
+.contact__select {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  min-height: var(--tap-min);
+}
+
+.contact__textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.contact__input:focus,
+.contact__textarea:focus,
+.contact__select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.contact__submit {
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .contact__submit {
+    width: auto;
+    min-width: 200px;
+  }
+}
+
+.contact__alert {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  display: none;
+}
+
+.contact__alert--success {
+  display: block;
+  background-color: rgba(37, 211, 102, 0.12);
+  color: #7ee2a8;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+}
+
+.contact__alert--error {
+  display: block;
+  background-color: rgba(255, 107, 107, 0.12);
+  color: #ff9a9a;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+/* Información lateral */
+.contact__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.contact__card {
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.contact__card-title {
+  margin: 0 0 var(--space-3);
+  font-size: 1rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.contact__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: 0.9375rem;
+}
+
+.contact__link {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.contact__link:hover {
+  color: var(--color-accent);
+}
