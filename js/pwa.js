@@ -93,13 +93,18 @@
     // Pantalla de carga con logo y barra dorada: se muestra de entrada al ingresar al sitio
     const splashEl = document.getElementById('pwa-splash');
     if (splashEl) {
-      setTimeout(() => {
-        splashEl.classList.add('is-hidden');
+      if (localStorage.getItem('fynx_admin_authed') === 'true') {
+        splashEl.style.display = 'none';
+        splashEl.setAttribute('hidden', '');
+      } else {
         setTimeout(() => {
-          splashEl.setAttribute('hidden', '');
-          splashEl.style.display = 'none';
-        }, 450);
-      }, 1250);
+          splashEl.classList.add('is-hidden');
+          setTimeout(() => {
+            splashEl.setAttribute('hidden', '');
+            splashEl.style.display = 'none';
+          }, 450);
+        }, 1250);
+      }
     }
   }
 

@@ -237,10 +237,9 @@
   }
   db.cfg = Object.assign({
     wa: '573116240316',
-    waLabel: 'Línea 1 · Asesoría y Ventas',
-    wa2: '',
-    wa2Label: 'Línea 2 · Atención y Pedidos',
-    waMode: 'balance',
+    waLabel: 'Línea 1 · Asesoría',
+    wa2: '573001234567',
+    wa2Label: 'Línea 2 · Pedidos',
     email: ''
   }, db.cfg);
   if (!Array.isArray(db.sales)) db.sales = [];
@@ -383,6 +382,7 @@
     uid: () => Math.random().toString(36).slice(2, 9),
     hasTwoLines,
     getNextWa,
+    cleanWaNumber,
     playChime,
     showOrderBanner,
     waUrl: (m, prefLine) => {

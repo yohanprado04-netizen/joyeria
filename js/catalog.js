@@ -64,32 +64,46 @@
       g.innerHTML = list.length ? list.map(card).join('') : '<li class="catalog__empty">Pronto tendremos piezas nuevas en esta categoría.</li>';
       
       document.querySelectorAll('[data-wa-link]').forEach((a) => { a.href = waUrl(a.dataset.waMsg || 'Hola Fynx Dorado'); });
+      updateWaButtons();
     };
+
+    const updateWaButtons = () => {
+      const clean = (n) => {
+        let num = String(n || '').replace(/\D/g, '');
+        if (num.length === 10 && !num.startsWith('57')) num = '57' + num;
+        return num || '573116240316';
+      };
+      const l1Num = clean(db.cfg.wa || '573116240316');
+      const l1Text = db.cfg.waLabel || 'Línea 1 · Asesoría';
+      const l2Num = clean(db.cfg.wa2 || '573001234567');
+      const l2Text = db.cfg.wa2Label || 'Línea 2 · Pedidos';
+
+      document.querySelectorAll('[data-wa-btn="1"]').forEach((btn) => {
+        btn.href = `https://api.whatsapp.com/send?phone=${l1Num}&text=${encodeURIComponent('Hola Joyería Fynx Dorado, deseo comunicarme con la Línea 1.')}`;
+        const span = btn.querySelector('[data-wa-text="1"]');
+        if (span) span.textContent = l1Text;
+      });
+
+      document.querySelectorAll('[data-wa-btn="2"]').forEach((btn) => {
+        btn.href = `https://api.whatsapp.com/send?phone=${l2Num}&text=${encodeURIComponent('Hola Joyería Fynx Dorado, deseo comunicarme con la Línea 2.')}`;
+        const span = btn.querySelector('[data-wa-text="2"]');
+        if (span) span.textContent = l2Text;
+      });
+
+      document.querySelectorAll('[data-wa-text="1"]').forEach((el) => { el.textContent = l1Text; });
+      document.querySelectorAll('[data-wa-text="2"]').forEach((el) => { el.textContent = l2Text; });
+    };
+
+    F.updateWaButtons = updateWaButtons;
 
     filters.addEventListener('click', (e) => {
       const b = e.target.closest('[data-filter]');
       if (b) { cat = b.dataset.filter; render(); }
     });
 
-    // Delegación para enlaces y botón flotante de WhatsApp: balanceo 50/50 o selector de asesor
-    document.addEventListener('click', (e) => {
-      const waLink = e.target.closest('[data-wa-link], .whatsapp-float');
-      if (!waLink) return;
-
-      if (window.FYNX && FYNX.hasTwoLines && FYNX.hasTwoLines() && FYNX.db.cfg.waMode === 'select') {
-        e.preventDefault();
-        FYNX.openWaAdvisorModal(waLink.dataset.waMsg || 'Hola Joyería Fynx Dorado, deseo asesoría personalizada.');
-        return;
-      }
-
-      if (window.FYNX && FYNX.waUrl) {
-        const msg = waLink.dataset.waMsg || 'Hola Joyería Fynx Dorado, quiero información de sus joyas.';
-        waLink.href = FYNX.waUrl(msg);
-      }
-    });
-
     F.render = render;
     render();
+    updateWaButtons();
   };
 
   if (document.readyState === 'loading') {

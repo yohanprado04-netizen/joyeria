@@ -42,7 +42,6 @@
       sec = 'home';
       edit = null;
       draw();
-      updateAdminBadge();
       return '';
     }
     const n = L.n + 1;
@@ -415,38 +414,28 @@
     <input type="password" style="display:none" aria-hidden="true" tabindex="-1">
 
     <div class="admin__card admin__field--full" style="border:1px solid var(--gold-2);background:rgba(212,175,55,0.06);padding:var(--space-4);border-radius:var(--radius)">
-      <h3 style="color:var(--gold-1);margin:0 0 6px;font-size:0.95rem;letter-spacing:0.12em;text-transform:uppercase">Gestión de 2 Líneas de WhatsApp</h3>
+      <h3 style="color:var(--gold-1);margin:0 0 6px;font-size:0.95rem;letter-spacing:0.12em;text-transform:uppercase">Configuración de los 2 Botones de WhatsApp</h3>
       <p style="margin:0;font-size:0.85rem;color:var(--color-text-muted);line-height:1.5">
-        Si tu joyería cuenta con dos números donde los clientes escriben, configúralos aquí. Podrás balancear las compras 50/50 automáticamente o mostrarle al cliente un selector elegante con ambos asesores.
+        Configura los números de tus dos líneas de atención. Estos dos botones aparecerán directamente flotando en pantalla, en la sección de contacto y en el carrito de compras.
       </p>
     </div>
 
     <div class="admin__field">
-      <label for="s-w">WhatsApp Línea 1 (Principal, con indicativo sin signos, ej: 573116240316)</label>
+      <label for="s-w">Botón 1: WhatsApp Línea 1 (Con indicativo sin signos, ej: 573116240316)</label>
       <input id="s-w" name="fynx_wa_val" type="tel" inputmode="numeric" required value="${esc(db.cfg.wa || '')}">
     </div>
     <div class="admin__field">
-      <label for="s-wl">Etiqueta / Nombre Línea 1</label>
-      <input id="s-wl" maxlength="40" placeholder="Ej: Asesoría y Ventas" value="${esc(db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas')}">
+      <label for="s-wl">Texto del Botón 1</label>
+      <input id="s-wl" maxlength="40" placeholder="Ej: Línea 1 · Asesoría" value="${esc(db.cfg.waLabel || 'Línea 1 · Asesoría')}">
     </div>
 
     <div class="admin__field">
-      <label for="s-w2">WhatsApp Línea 2 (Opcional, con indicativo, ej: 573001234567)</label>
-      <input id="s-w2" name="fynx_wa2_val" type="tel" inputmode="numeric" placeholder="Vacío si solo usas 1 línea" value="${esc(db.cfg.wa2 || '')}">
+      <label for="s-w2">Botón 2: WhatsApp Línea 2 (Con indicativo sin signos, ej: 573001234567)</label>
+      <input id="s-w2" name="fynx_wa2_val" type="tel" inputmode="numeric" placeholder="Ej: 573001234567" value="${esc(db.cfg.wa2 || '')}">
     </div>
     <div class="admin__field">
-      <label for="s-w2l">Etiqueta / Nombre Línea 2</label>
-      <input id="s-w2l" maxlength="40" placeholder="Ej: Atención y Pedidos" value="${esc(db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos')}">
-    </div>
-
-    <div class="admin__field admin__field--full">
-      <label for="s-wm">Modo de Atención y Distribución de WhatsApp</label>
-      <select id="s-wm" style="padding:var(--space-2);background:var(--color-bg);border:1px solid var(--color-border);color:#fff">
-        <option value="balance" ${db.cfg.waMode === 'balance' ? 'selected' : ''}>Balanceo Automático 50/50 (Recomendado: reparte pedidos y clientes equitativamente para que a ambas líneas les escriban por igual)</option>
-        <option value="select" ${db.cfg.waMode === 'select' ? 'selected' : ''}>Selector para el Cliente (Muestra una ventana emergente elegante para que el cliente elija a cuál de las 2 líneas escribir)</option>
-        <option value="line1" ${db.cfg.waMode === 'line1' ? 'selected' : ''}>Usar exclusivamente Línea 1</option>
-        <option value="line2" ${db.cfg.waMode === 'line2' ? 'selected' : ''}>Usar exclusivamente Línea 2</option>
-      </select>
+      <label for="s-w2l">Texto del Botón 2</label>
+      <input id="s-w2l" maxlength="40" placeholder="Ej: Línea 2 · Pedidos" value="${esc(db.cfg.wa2Label || 'Línea 2 · Pedidos')}">
     </div>
 
     <div class="admin__field"><label for="s-e">Correo para pedidos y mensajes (opcional)</label><input id="s-e" name="fynx_em_val" type="text" inputmode="email" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value="${esc(db.cfg.email)}"></div>
@@ -833,46 +822,23 @@
       const waLabel = $('#s-wl', root).value.trim();
       const wa2 = $('#s-w2', root).value.replace(/\D/g, '');
       const wa2Label = $('#s-w2l', root).value.trim();
-      const waMode = $('#s-wm', root).value;
       const em = $('#s-e', root).value.trim(), pin = $('#s-p', root).value.trim();
       if (wa.length < 8 || wa.length > 15) return toast('WhatsApp Línea 1 inválido');
       if (wa2 && (wa2.length < 8 || wa2.length > 15)) return toast('WhatsApp Línea 2 inválido');
       if (em && !F.validEmail(em)) return toast('Correo inválido');
       if (pin && !/^\d{4,8}$/.test(pin)) return toast('PIN: de 4 a 8 números');
       db.cfg.wa = wa;
-      db.cfg.waLabel = waLabel || 'Línea 1 · Asesoría y Ventas';
+      db.cfg.waLabel = waLabel || 'Línea 1 · Asesoría';
       db.cfg.wa2 = wa2;
-      db.cfg.wa2Label = wa2Label || 'Línea 2 · Atención y Pedidos';
-      db.cfg.waMode = waMode || 'balance';
+      db.cfg.wa2Label = wa2Label || 'Línea 2 · Pedidos';
       db.cfg.email = em;
       if (pin) { db.cfg.pinHash = await H(pin); delete db.cfg.pin; defaultPin = false; }
       commit('Ajustes guardados');
+      if (F.updateWaButtons) F.updateWaButtons();
     }
   }
 
   /* ---- Apertura / cierre / persistencia ---- */
-  let badgeEl = null;
-  function updateAdminBadge() {
-    const isAuthed = localStorage.getItem(AUTH_KEY) === 'true';
-    if (!badgeEl && document.body) {
-      badgeEl = document.createElement('button');
-      badgeEl.className = 'fynx-admin-quick-badge';
-      badgeEl.setAttribute('type', 'button');
-      badgeEl.setAttribute('aria-label', 'Abrir panel de administración');
-      badgeEl.innerHTML = `
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:6px">
-          <polygon points="12 2 3 9 12 22 21 9"/><line x1="3" y1="9" x2="21" y2="9"/>
-        </svg>
-        <span>Panel Admin</span>
-      `;
-      badgeEl.addEventListener('click', () => open());
-      document.body.appendChild(badgeEl);
-    }
-    if (badgeEl) {
-      badgeEl.style.display = isAuthed ? 'inline-flex' : 'none';
-    }
-  }
-
   function build() {
     if (root) return;
     root = document.createElement('div');
@@ -906,13 +872,11 @@
     root.classList.remove('is-menu'); root.hidden = false;
     document.documentElement.style.overflow = 'hidden';
     draw();
-    updateAdminBadge();
   }
   function hide() {
     // Minimiza o vuelve a la tienda SIN cerrar la sesión del administrador
     if (root) root.hidden = true;
     document.documentElement.style.overflow = '';
-    updateAdminBadge();
   }
   function logout() {
     // Cierre voluntario de sesión: elimina el token de autenticación
@@ -921,7 +885,6 @@
     clearTimeout(idleT);
     if (root) root.hidden = true;
     document.documentElement.style.overflow = '';
-    updateAdminBadge();
     toast('Sesión de administrador cerrada');
   }
   document.addEventListener('keydown', (e) => {
@@ -958,11 +921,23 @@
       open();
     }
   };
+
+  // Si el administrador ya había iniciado sesión y cerró la app / navegador,
+  // al volver a abrir la aplicación entra DIRECTO al panel admin
+  function checkAutoOpenAdmin() {
+    if (localStorage.getItem(AUTH_KEY) === 'true') {
+      open();
+    }
+  }
+
   if (typeof window !== 'undefined') {
-    window.addEventListener('DOMContentLoaded', updateAdminBadge);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', checkAutoOpenAdmin);
+    } else {
+      checkAutoOpenAdmin();
+    }
     window.addEventListener('hashchange', hash);
     hash();
-    setTimeout(updateAdminBadge, 200);
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }

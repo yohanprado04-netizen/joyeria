@@ -1,50 +1,57 @@
-/* PBI-8 · Botón flotante de WhatsApp (#11) */
-.whatsapp-float {
+/* PBI-8 · Botones flotantes de WhatsApp (Línea 1 y Línea 2) */
+.whatsapp-floats {
   position: fixed;
   right: max(var(--space-4), var(--safe-right));
   bottom: calc(var(--space-4) + var(--safe-bottom));
   z-index: var(--z-float);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.whatsapp-float {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  width: 56px;
-  height: 56px;
+  height: 46px;
+  padding: 0 var(--space-4);
   border-radius: 999px;
   background: var(--color-whatsapp);
   color: var(--color-text-inverse);
   text-decoration: none;
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-black) 25%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
   transition: background-color var(--transition), transform var(--transition);
+  font-size: 0.8125rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.whatsapp-float--2 {
+  background: #128c7e;
+  border: 1px solid rgba(212, 175, 55, 0.4);
 }
 
 .whatsapp-float:hover { background: var(--color-whatsapp-hover); }
+.whatsapp-float--2:hover { background: #0b6358; }
 .whatsapp-float:active { transform: scale(0.96); }
 
-.whatsapp-float__icon { width: 28px; height: 28px; flex-shrink: 0; }
-
-/* En móvil solo el ícono; el nombre accesible viene de aria-label */
-.whatsapp-float__label { display: none; }
+.whatsapp-float__icon { width: 22px; height: 22px; flex-shrink: 0; }
+.whatsapp-float__label { display: inline; }
 
 /* Se oculta mientras el menú móvil está abierto o el aviso de cookies ocupa la parte inferior */
-.is-nav-open .whatsapp-float,
-html:has(.cookie-banner:not([hidden])) .whatsapp-float { visibility: hidden; }
+.is-nav-open .whatsapp-floats,
+html:has(.cookie-banner:not([hidden])) .whatsapp-floats { visibility: hidden; }
 
-@media (min-width: 768px) {
+@media (max-width: 480px) {
   .whatsapp-float {
-    right: var(--space-8);
-    bottom: var(--space-8);
-    width: auto;
-    padding-inline: var(--space-4) var(--space-6);
+    height: 40px;
+    padding: 0 var(--space-3);
+    font-size: 0.72rem;
   }
-
-  .whatsapp-float__label {
-    display: inline;
-    font-size: 0.8125rem;
-    font-weight: var(--fw-medium);
-    letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
-  }
+  .whatsapp-float__icon { width: 18px; height: 18px; }
 }
 
 /* Modal Selector de Asesor Multilínea */
@@ -158,36 +165,4 @@ html:has(.cookie-banner:not([hidden])) .whatsapp-float { visibility: hidden; }
   font-size: 0.8rem;
   color: var(--color-text-muted);
   margin-top: 2px;
-}
-
-/* Badge flotante de acceso rápido para Administrador con sesión activa */
-.fynx-admin-quick-badge {
-  position: fixed;
-  left: max(var(--space-4), var(--safe-left));
-  bottom: calc(var(--space-4) + var(--safe-bottom));
-  z-index: var(--z-float);
-  display: none;
-  align-items: center;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: #111111;
-  border: 1px solid var(--gold-1);
-  color: var(--gold-1);
-  font-size: 0.78rem;
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-  cursor: pointer;
-  transition: transform var(--transition), background-color var(--transition);
-}
-
-.fynx-admin-quick-badge:hover {
-  background: var(--gold-1);
-  color: #000;
-  transform: translateY(-2px);
-}
-
-.fynx-admin-quick-badge:active {
-  transform: scale(0.97);
 }

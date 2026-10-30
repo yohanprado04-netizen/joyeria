@@ -294,8 +294,19 @@
           body: JSON.stringify({ _subject: 'Nuevo pedido · Fynx Dorado', _captcha: 'false', Pedido: lines, Total: formatCOP(total), Cliente: cliente })
         }).catch(() => {});
       }
-      // Balanceo inteligente o asignación de línea de WhatsApp
-      const targetWa = (window.FYNX && FYNX.getNextWa) ? FYNX.getNextWa() : { num: '573116240316', label: 'Línea 1', line: 1 };
+      // Selección de línea elegida en el carrito (Línea 1 o Línea 2 configuradas en Ajustes)
+      const selectedLine = fd.get('advisor_line') === '2' ? 2 : 1;
+      const cleanNumHelper = (n) => {
+        let num = String(n || '').replace(/\D/g, '');
+        if (num.length === 10 && !num.startsWith('57')) num = '57' + num;
+        return num || '573116240316';
+      };
+      const targetPhone = selectedLine === 2 
+        ? cleanNumHelper(FYNX.db.cfg.wa2 || '573001234567')
+        : cleanNumHelper(FYNX.db.cfg.wa || '573116240316');
+      const targetLabel = selectedLine === 2
+        ? (FYNX.db.cfg.wa2Label || 'Línea 2 · Pedidos')
+        : (FYNX.db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas');
 
       // Registra el pedido como PENDIENTE (NO descuenta el stock aún).
       // Envía notificación al celular del administrador para que confirme la compra.
@@ -314,14 +325,11 @@
             phone: fd.get('Telefono de Contacto') || '',
             address: fd.get('Direccion de Envio') || '',
             payment: fd.get('Metodo de Pago') || 'Transferencia',
-            advisorLine: targetWa.line || 1,
-            advisorLabel: targetWa.label || 'Línea 1'
+            advisorLine: selectedLine,
+            advisorLabel: targetLabel
           }
         );
       }
-
-      const cleanNum = (targetWa.num && String(targetWa.num).replace(/\D/g, '')) || '573116240316';
-      const finalPhone = (cleanNum.length === 10 && !cleanNum.startsWith('57')) ? ('57' + cleanNum) : cleanNum;
 
       const waMsg = `Hola Joyería Fynx Dorado, quiero hacer este pedido:
 
@@ -331,7 +339,7 @@ ${lines}
 
 ${cliente}`;
 
-      const waUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(waMsg)}`;
+      const waUrl = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(waMsg)}`;
 
       // Feedback visual inmediato en el carrito
       if (checkoutSubmitBtn) {
