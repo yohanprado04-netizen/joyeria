@@ -212,3 +212,115 @@
   85% { width: 92%; }
   100% { width: 100%; }
 }
+
+/* Banner de Notificación en Tiempo Real (In-App) para Nuevos Pedidos */
+.fynx-order-banner {
+  position: fixed;
+  top: max(var(--space-4), var(--safe-top));
+  left: 50%;
+  transform: translateX(-50%) translateY(-120%);
+  z-index: 999999;
+  width: min(460px, calc(100% - var(--space-6)));
+  background: #14120c;
+  border: 1px solid var(--gold-1);
+  border-radius: var(--radius);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.35);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: #fff;
+  transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.fynx-order-banner.is-visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.fynx-order-banner__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #000;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+  animation: pwaPulse 1.8s infinite;
+}
+
+.fynx-order-banner__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.fynx-order-banner__title {
+  margin: 0 0 2px;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-1);
+  font-weight: var(--fw-bold);
+}
+
+.fynx-order-banner__desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fynx-order-banner__btn {
+  padding: 6px 12px;
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fynx-order-banner__close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+/* Confirmación visual directa en checkout del carrito */
+.cart-checkout-feedback {
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--gold-1);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  text-align: center;
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: fadeIn 0.3s ease;
+}
+
+.cart-checkout-feedback h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--gold-1);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cart-checkout-feedback p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

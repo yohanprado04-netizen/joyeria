@@ -94,15 +94,16 @@
 
       <div class="admin__card">
         <div class="admin__bar">
-          <h3>Notificaciones al Celular (PWA)</h3>
+          <div>
+            <h3 style="margin:0 0 4px">Centro de Alertas y Notificaciones</h3>
+            <span class="admin__badge admin__badge--ok">Alertas sonoras y en pantalla: SIEMPRE ACTIVAS</span>
+          </div>
           <button class="button ${notifGranted ? 'button--ghost' : 'button--primary'} admin__sm" data-a="enable-notifs">
-            ${notifGranted ? 'Notificaciones Activas (Probar)' : 'Activar en este celular'}
+            ${notifGranted ? 'Notificaciones del Sistema Activas (Probar)' : 'Activar y Probar Alerta'}
           </button>
         </div>
-        <p style="margin:0;font-size:0.85rem;color:var(--color-text-muted)">
-          ${notifGranted
-            ? 'Tu celular te notificará al instante con sonido y vibración cada vez que un cliente realice un pedido.'
-            : 'Si tienes la app instalada en la pantalla de inicio, activa las notificaciones para enterarte al instante de nuevos pedidos.'}
+        <p style="margin:var(--space-2) 0 0;font-size:0.85rem;color:var(--color-text-muted);line-height:1.45">
+          Cada vez que un cliente realice un pedido, tu dispositivo emitirá una campanilla sonora y mostrará un banner dorado en tiempo real. Para notificaciones emergentes con la pantalla apagada: en <b>iPhone (iOS)</b> pulsa <i>Compartir &gt; Agregar a inicio</i>; en <b>Android</b> se activan automáticamente bajo conexión segura (HTTPS).
         </p>
       </div>
 
@@ -721,9 +722,22 @@
       return;
     }
     if (a === 'order-confirm') {
+      const order = db.sales.find((s) => s.id == id);
       const res = F.confirmOrder(id);
-      if (res.ok) commit(res.msg);
-      else toast(res.msg);
+      if (res.ok) {
+        commit(res.msg);
+        // Ofrecer confirmarle al cliente directamente por WhatsApp
+        if (order && order.client && order.client.phone) {
+          const clientTel = String(order.client.phone).replace(/\D/g, '');
+          const cleanClientTel = clientTel.length === 10 ? ('57' + clientTel) : clientTel;
+          if (confirm(`¿Deseas abrir WhatsApp para confirmarle la compra a ${order.client.name}?`)) {
+            const msg = `Hola ${order.client.name}, te confirmamos que tu pedido #${(order.id || '').slice(0, 6).toUpperCase()} en Joyería Fynx Dorado ha sido aprobado con éxito. El stock de tus piezas ha sido apartado y estamos alistando tu envío.`;
+            window.open(`https://api.whatsapp.com/send?phone=${cleanClientTel}&text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+          }
+        }
+      } else {
+        toast(res.msg);
+      }
       return;
     }
     if (a === 'order-cancel') {
@@ -734,10 +748,23 @@
       return;
     }
     if (a === 'enable-notifs') {
+      // 1. Probar campanilla sonora dorada siempre
+      if (F.playChime) F.playChime();
+
+      // 2. Probar banner visual en pantalla
+      if (F.showOrderBanner) {
+        F.showOrderBanner({
+          id: 'test',
+          total: 480000,
+          client: { name: 'Prueba de Notificación', payment: 'Transferencia' }
+        });
+      }
+
+      // 3. Probar o solicitar Notificaciones del sistema
       if (typeof window !== 'undefined' && 'Notification' in window) {
         Notification.requestPermission().then((perm) => {
           if (perm === 'granted') {
-            toast('Notificaciones activadas en este dispositivo');
+            toast('¡Alertas y notificaciones activas!');
             if (navigator.serviceWorker && navigator.serviceWorker.ready) {
               navigator.serviceWorker.ready.then((reg) => {
                 reg.showNotification('Joyería Fynx Dorado', {
@@ -748,12 +775,17 @@
               });
             }
           } else {
-            toast('Permiso de notificaciones no concedido');
+            toast('Permiso de notificaciones del sistema no concedido en este navegador');
           }
           draw();
         });
       } else {
-        toast('Este dispositivo no soporta notificaciones locales');
+        const isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isIos) {
+          toast('Alertas sonoras y en pantalla activas. En iPhone, agrega la app a la Pantalla de Inicio para notificaciones con pantalla bloqueada.');
+        } else {
+          toast('Alertas sonoras y en pantalla activas. Las notificaciones del sistema requieren conexión segura (HTTPS).');
+        }
       }
       return;
     }

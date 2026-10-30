@@ -250,12 +250,20 @@
     try { localStorage.setItem(KEY, JSON.stringify(db)); return true; } catch (e) { return false; }
   };
 
+  const cleanWaNumber = (n) => {
+    let num = String(n || '').replace(/\D/g, '');
+    if (num.length === 10 && !num.startsWith('57')) {
+      num = '57' + num;
+    }
+    return num || '573116240316';
+  };
+
   const hasTwoLines = () => Boolean(db.cfg.wa2 && String(db.cfg.wa2).replace(/\D/g, '').length >= 8);
 
   const getNextWa = (prefLine) => {
     const two = hasTwoLines();
-    const l1 = { num: String(db.cfg.wa || '573116240316').replace(/\D/g, ''), label: db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas', line: 1 };
-    const l2 = two ? { num: String(db.cfg.wa2).replace(/\D/g, ''), label: db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos', line: 2 } : l1;
+    const l1 = { num: cleanWaNumber(db.cfg.wa), label: db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas', line: 1 };
+    const l2 = two ? { num: cleanWaNumber(db.cfg.wa2), label: db.cfg.wa2Label || 'Línea 2 · Atención y Pedidos', line: 2 } : l1;
 
     if (prefLine === 2 && two) return l2;
     if (prefLine === 1 || !two) return l1;
@@ -275,11 +283,108 @@
     }
   };
 
+  // Sonido de campanilla dorada sintetizado (Web Audio API: funciona en iOS, Android y PC sin archivos externos)
+  const playChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      if (ctx.state === 'suspended') ctx.resume();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.28);
+      
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.85);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.85);
+    } catch (e) {}
+  };
+
+  // Banner visual de alerta inmediata en pantalla (In-App)
+  let orderBannerEl = null;
+  let orderBannerTimer = null;
+  const showOrderBanner = (order) => {
+    if (!document.body) return;
+    if (!orderBannerEl) {
+      orderBannerEl = document.createElement('div');
+      orderBannerEl.className = 'fynx-order-banner';
+      orderBannerEl.innerHTML = `
+        <div class="fynx-order-banner__icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="fynx-order-banner__content">
+          <div class="fynx-order-banner__title">Nuevo Pedido Recibido</div>
+          <p class="fynx-order-banner__desc" data-banner-desc></p>
+        </div>
+        <button type="button" class="fynx-order-banner__btn" data-banner-open>Ver Pedido</button>
+        <button type="button" class="fynx-order-banner__close" data-banner-close aria-label="Cerrar">&times;</button>
+      `;
+      document.body.appendChild(orderBannerEl);
+
+      orderBannerEl.addEventListener('click', (e) => {
+        if (e.target.closest('[data-banner-close]')) {
+          orderBannerEl.classList.remove('is-visible');
+          clearTimeout(orderBannerTimer);
+        } else if (e.target.closest('[data-banner-open]') || e.target.closest('.fynx-order-banner__content')) {
+          orderBannerEl.classList.remove('is-visible');
+          clearTimeout(orderBannerTimer);
+          if (window.location) window.location.hash = '#admin';
+        }
+      });
+    }
+
+    const descEl = orderBannerEl.querySelector('[data-banner-desc]');
+    if (descEl) {
+      descEl.textContent = `${(order.client && order.client.name) || 'Cliente WhatsApp'} · ${money(order.total)} (${(order.client && order.client.payment) || 'Transferencia'})`;
+    }
+
+    orderBannerEl.classList.add('is-visible');
+    clearTimeout(orderBannerTimer);
+    orderBannerTimer = setTimeout(() => {
+      orderBannerEl.classList.remove('is-visible');
+    }, 9000);
+  };
+
+  // Canal de difusión en tiempo real entre pestañas y dispositivos
+  let bc = null;
+  try {
+    bc = new BroadcastChannel('fynx_orders_channel');
+    bc.onmessage = (ev) => {
+      if (ev.data && ev.data.type === 'NEW_ORDER' && ev.data.order) {
+        playChime();
+        showOrderBanner(ev.data.order);
+        if (window.FYNX && FYNX.renderAdmin) FYNX.renderAdmin();
+      }
+    };
+  } catch (e) {}
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'fynx_last_order_broadcast') {
+      try {
+        playChime();
+        const d = JSON.parse(e.newValue);
+        const ord = db.sales.find((s) => s.id === d.id) || db.sales[0];
+        if (ord) showOrderBanner(ord);
+        if (window.FYNX && FYNX.renderAdmin) FYNX.renderAdmin();
+      } catch (err) {}
+    }
+  });
+
   window.FYNX = {
     db, esc, money, save,
     uid: () => Math.random().toString(36).slice(2, 9),
     hasTwoLines,
     getNextWa,
+    playChime,
+    showOrderBanner,
     waUrl: (m, prefLine) => {
       const target = getNextWa(prefLine);
       return `https://wa.me/${target.num}?text=${encodeURIComponent(m)}`;
@@ -381,7 +486,17 @@
       db.sales.unshift(order);
       save();
 
-      // Enviar notificación al Service Worker y al móvil del administrador si la app está instalada
+      // 1. Alerta sonora y visual inmediata (In-App)
+      playChime();
+      showOrderBanner(order);
+
+      // 2. Difusión a todas las pestañas y ventanas abiertas
+      try {
+        if (bc) bc.postMessage({ type: 'NEW_ORDER', order });
+        localStorage.setItem('fynx_last_order_broadcast', JSON.stringify({ id: order.id, time: Date.now() }));
+      } catch (e) {}
+
+      // 3. Notificación de sistema (Service Worker Push) si está disponible en este dispositivo
       const title = 'Nuevo Pedido · Fynx Dorado';
       const body = `${order.client.name} envió un pedido por ${money(order.total)} (${order.client.payment}). Toca para confirmar compra.`;
       

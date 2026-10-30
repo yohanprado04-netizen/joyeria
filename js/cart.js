@@ -320,6 +320,9 @@
         );
       }
 
+      const cleanNum = (targetWa.num && String(targetWa.num).replace(/\D/g, '')) || '573116240316';
+      const finalPhone = (cleanNum.length === 10 && !cleanNum.startsWith('57')) ? ('57' + cleanNum) : cleanNum;
+
       const waMsg = `Hola Joyería Fynx Dorado, quiero hacer este pedido:
 
 ${lines}
@@ -328,11 +331,42 @@ ${lines}
 
 ${cliente}`;
 
-      window.open(`https://wa.me/${targetWa.num}?text=${encodeURIComponent(waMsg)}`, '_blank', 'noopener');
-      cart = [];
-      saveCart();
-      checkoutForm.reset();
-      closeCart();
+      const waUrl = `https://api.whatsapp.com/send?phone=${finalPhone}&text=${encodeURIComponent(waMsg)}`;
+
+      // Feedback visual inmediato en el carrito
+      if (checkoutSubmitBtn) {
+        checkoutSubmitBtn.disabled = true;
+        checkoutSubmitBtn.textContent = 'Abriendo WhatsApp...';
+      }
+
+      // 1. Abrir WhatsApp inmediatamente mediante enlace seguro contra bloqueadores de popups
+      const waAnchor = document.createElement('a');
+      waAnchor.href = waUrl;
+      waAnchor.target = '_blank';
+      waAnchor.rel = 'noopener noreferrer';
+      document.body.appendChild(waAnchor);
+      waAnchor.click();
+      setTimeout(() => { try { waAnchor.remove(); } catch (err) {} }, 150);
+
+      // 2. Si es dispositivo móvil o PWA, asegurar apertura directa sin restricción de popups
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (isMobile) {
+        setTimeout(() => {
+          window.location.href = waUrl;
+        }, 400);
+      }
+
+      // 3. Limpiar carrito y resetear formulario tras despacho
+      setTimeout(() => {
+        cart = [];
+        saveCart();
+        checkoutForm.reset();
+        if (checkoutSubmitBtn) {
+          checkoutSubmitBtn.disabled = false;
+          checkoutSubmitBtn.textContent = 'Comprar por WhatsApp';
+        }
+        closeCart();
+      }, 1200);
     });
   }
 
