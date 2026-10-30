@@ -73,10 +73,29 @@
         if (num.length === 10 && !num.startsWith('57')) num = '57' + num;
         return num || '573116240316';
       };
-      const phone = clean(db.cfg.wa || '573116240316');
+      const l1Num = clean(db.cfg.wa || '573116240316');
+      const l1Text = db.cfg.waLabel || 'Línea 1 · Asesoría';
+      const l2Num = clean(db.cfg.wa2 || '573001234567');
+      const l2Text = db.cfg.wa2Label || 'Línea 2 · Pedidos';
+
+      document.querySelectorAll('[data-wa-btn="1"]').forEach((btn) => {
+        btn.href = `https://api.whatsapp.com/send?phone=${l1Num}&text=${encodeURIComponent('Hola Joyería Fynx Dorado, deseo comunicarme con la Línea 1.')}`;
+        const span = btn.querySelector('[data-wa-text="1"]');
+        if (span) span.textContent = l1Text;
+      });
+
+      document.querySelectorAll('[data-wa-btn="2"]').forEach((btn) => {
+        btn.href = `https://api.whatsapp.com/send?phone=${l2Num}&text=${encodeURIComponent('Hola Joyería Fynx Dorado, deseo comunicarme con la Línea 2.')}`;
+        const span = btn.querySelector('[data-wa-text="2"]');
+        if (span) span.textContent = l2Text;
+      });
+
+      document.querySelectorAll('[data-wa-text="1"]').forEach((el) => { el.textContent = l1Text; });
+      document.querySelectorAll('[data-wa-text="2"]').forEach((el) => { el.textContent = l2Text; });
+
       document.querySelectorAll('[data-wa-link]').forEach((a) => {
         const msg = a.dataset.waMsg || 'Hola Joyería Fynx Dorado, deseo asesoría personalizada para una joya.';
-        a.href = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`;
+        a.href = `https://api.whatsapp.com/send?phone=${l1Num}&text=${encodeURIComponent(msg)}`;
       });
     };
 

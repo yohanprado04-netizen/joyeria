@@ -294,13 +294,19 @@
           body: JSON.stringify({ _subject: 'Nuevo pedido · Fynx Dorado', _captcha: 'false', Pedido: lines, Total: formatCOP(total), Cliente: cliente })
         }).catch(() => {});
       }
+      // Selección de línea elegida en el carrito (Línea 1 o Línea 2 configuradas en Ajustes)
+      const selectedLine = fd.get('advisor_line') === '2' ? 2 : 1;
       const cleanNumHelper = (n) => {
         let num = String(n || '').replace(/\D/g, '');
         if (num.length === 10 && !num.startsWith('57')) num = '57' + num;
         return num || '573116240316';
       };
-      const targetPhone = cleanNumHelper(FYNX.db.cfg.wa || '573116240316');
-      const targetLabel = FYNX.db.cfg.waLabel || 'Asesoría y Ventas';
+      const targetPhone = selectedLine === 2 
+        ? cleanNumHelper(FYNX.db.cfg.wa2 || '573001234567')
+        : cleanNumHelper(FYNX.db.cfg.wa || '573116240316');
+      const targetLabel = selectedLine === 2
+        ? (FYNX.db.cfg.wa2Label || 'Línea 2 · Pedidos')
+        : (FYNX.db.cfg.waLabel || 'Línea 1 · Asesoría y Ventas');
 
       // Registra el pedido como PENDIENTE (NO descuenta el stock aún).
       // Envía notificación al celular del administrador para que confirme la compra.
@@ -319,7 +325,7 @@
             phone: fd.get('Telefono de Contacto') || '',
             address: fd.get('Direccion de Envio') || '',
             payment: fd.get('Metodo de Pago') || 'Transferencia',
-            advisorLine: 1,
+            advisorLine: selectedLine,
             advisorLabel: targetLabel
           }
         );
